@@ -45,4 +45,3 @@ Files: `CyberTwin-AI-Actual-Site-Hindi.mp4`, `Actual-Site-Hindi-Transcript.md`, 
 Reproduce: run `scripts/prepare_site_demo.py`, `scripts/narrate_site_demo.py`, `scripts/record_site_demo.mjs`, `scripts/encode_site_demo.py`, then `scripts/publish_site_walkthrough.py`. Install the optional tools and follow the portable reproduction commands in `docs/REVIEWING.md`. Media dependencies remain isolated in `.cache/video-deps/`.
 ''',encoding='utf-8')
 print(f'Local viewer updated: {minutes}:{seconds:02d}, {len(timing["chapters"])} actual website chapters')
-

@@ -1,5 +1,16 @@
 # Validation record — 25 October 2026
 
+## Repository publication check — 27 October 2026
+
+- Backend suite rerun: **33 passed**, with the same upstream TestClient deprecation warning.
+- Frontend suite rerun: **7 passed**. TypeScript and Vite production build passed.
+- Clean local Git clone initialized without an existing `.env`, database or model: Alembic migrations, new administrator creation, sample seeding and synthetic model training all passed. Authenticated status, events and overview endpoints returned 200. This used the existing pinned Python environment; Python dependencies were not reinstalled for this check.
+- Clean-clone frontend `npm ci` installed 208 packages and reported zero known advisories.
+- Publication file scan: no configured local secret values or private-key/token patterns found; local environment, data, caches and the unrelated BI report are ignored.
+- GitHub Actions checks are included for future pushes and pull requests. Remote CI status is separate from these local results.
+
+## Original validation
+
 Environment: Windows, Python 3.13.5, Node 20.19.4. Dependencies are pinned in `requirements.txt`, with a resolved Python lock in `requirements.lock.txt`; frontend transitive versions are in `frontend/package-lock.json`.
 
 | Check | Result |
