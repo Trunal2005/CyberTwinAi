@@ -1,0 +1,142 @@
+[
+  {
+    "title": "CyberTwin AI",
+    "subtitle": "Intelligent Intrusion Detection, Prevention & Digital Twin Platform",
+    "kind": "intro",
+    "bullets": ["Observe network signals", "Investigate evidence", "Compare defenses safely"],
+    "narration": "नमस्कार सभी को। आज हम साइबर ट्विन ए आई प्रोजेक्ट को विस्तार से समझेंगे। इसका पूरा शीर्षक है, इंटेलिजेंट इंट्रूज़न डिटेक्शन, प्रिवेंशन एंड डिजिटल ट्विन प्लेटफॉर्म। यह एक लोकल रिसर्च वेब एप्लिकेशन है, जो नेटवर्क घटनाओं की निगरानी, संदिग्ध गतिविधि की पहचान, नियंत्रित ब्लॉकिंग और वर्चुअल नेटवर्क में डिफेंस की तुलना को एक जगह लाता है। इस वीडियो में हम इसके उद्देश्य, आर्किटेक्चर, मुख्य फीचर्स, मशीन लर्निंग, डेमो प्रक्रिया और वास्तविक सीमाओं को समझेंगे।"
+  },
+  {
+    "title": "What problem does it solve?",
+    "subtitle": "From a suspicious signal to an informed defensive decision",
+    "kind": "flow",
+    "bullets": ["What happened?", "Why was it suspicious?", "Which asset could be affected?", "What should the administrator do?"],
+    "narration": "किसी नेटवर्क में बहुत सारे कनेक्शन और सिक्योरिटी लॉग बनते हैं। केवल लॉग देखना काफी नहीं होता। एडमिनिस्ट्रेटर को समझना होता है कि कौन सी घटना संदिग्ध है, उसका कारण क्या है, और किस डिवाइस पर असर हो सकता है। साइबर ट्विन इन सवालों को जोड़ता है। पहले घटना का विश्लेषण होता है, फिर सोर्स आई पी और टारगेट की जांच होती है। अंत में एडमिन तय करता है कि केवल निगरानी करनी है, अस्थायी ब्लॉक लगाना है, या पहले वर्चुअल नेटवर्क में किसी डिफेंस का असर देखना है।"
+  },
+  {
+    "title": "System architecture",
+    "subtitle": "Browser → authenticated API → analysis services → persistent data",
+    "kind": "architecture",
+    "bullets": ["React + TypeScript + Vite + Tailwind", "FastAPI + Pydantic + SQLAlchemy", "SQLite · NetworkX · scikit-learn · Pandas"],
+    "narration": "फ्रंट एंड रिएक्ट और टाइपस्क्रिप्ट में बना है। वाइट बिल्ड टूल है और टेलविंड स्टाइलिंग संभालता है। चार्ट्स के लिए रीचार्ट्स और नेटवर्क मैप के लिए रिएक्ट फ्लो इस्तेमाल होता है। बैक एंड पाइथन के फास्ट ए पी आई फ्रेमवर्क पर चलता है। पाइडैंटिक इनपुट वैलिडेशन करता है और एस क्यू एल एल्केमी डेटाबेस से जुड़ता है। लोकल डेवलपमेंट में एस क्यू लाइट है। नेटवर्क एक्स ग्राफ का विश्लेषण करता है, स्किकिट लर्न मॉडल चलाता है और पैंडस एनालिटिक्स में मदद करता है।"
+  },
+  {
+    "title": "Three origins. Honest status.",
+    "subtitle": "Simulation, replay and live observations remain distinguishable",
+    "kind": "modes",
+    "bullets": ["SIMULATION: generated test events", "REPLAY: every uploaded JSON / CSV / EVE file", "LIVE: explicitly configured, fresh Suricata records", "IPS enforcement stays disabled by default"],
+    "narration": "इस प्रोजेक्ट का एक जरूरी नियम है कि डेमो डेटा को लाइव ट्रैफिक नहीं कहा जाता। जनरेट किए गए टेस्ट इवेंट्स सिमुलेशन होते हैं। अपलोड की गई जे सन, सी एस वी या सुरिकाटा फाइल हमेशा रीप्ले होती है। लाइव मॉनिटरिंग के लिए सर्वर पर सुरिकाटा का सोर्स स्पष्ट रूप से कॉन्फिगर करना पड़ता है। हाल के वैध रिकॉर्ड आने पर ही लाइव स्टेटस दिखाई देता है। पहली शुरुआत में मॉनिटरिंग बंद, पॉलिसी डिटेक्शन ओनली और फायरवॉल अडैप्टर सिमुलेटेड रहता है।"
+  },
+  {
+    "title": "Overview dashboard",
+    "subtitle": "A consolidated view of stored observations",
+    "kind": "dashboard",
+    "bullets": ["Event counts, severity and active blocks", "Activity timeline and observed sources", "Mean rule-risk trend", "Network health is explicitly unmeasured"],
+    "narration": "ओवरव्यू पेज पूरे वर्कस्पेस की स्थिति समझने का शुरुआती बिंदु है। इसमें कुल इवेंट्स, संदिग्ध घटनाएं, हाई और क्रिटिकल अलर्ट्स तथा एक्टिव ब्लॉक रिकॉर्ड दिखाई देते हैं। टाइमलाइन बताती है कि समय के साथ कितनी घटनाएं रिकॉर्ड हुईं। सिवैरिटी चार्ट अलग अलग जोखिम स्तर दिखाता है और सोर्स सूची जांच शुरू करने में मदद करती है। यहां नेटवर्क हेल्थ को बिना मापे स्वस्थ घोषित नहीं किया जाता। रिस्क ट्रेंड भी स्टोर किए गए इवेंट्स के रूल रिस्क का औसत है, पूरे वास्तविक नेटवर्क की गारंटी नहीं।"
+  },
+  {
+    "title": "The detection pipeline",
+    "subtitle": "Validate → normalize → correlate → score → persist → decide",
+    "kind": "pipeline",
+    "bullets": ["Generated samples or bounded file imports", "UTC timestamps and validated IPv4 / IPv6", "Separate histories for each event origin", "Evidence, rule risk and ML score are stored"],
+    "narration": "इवेंट पाइपलाइन पहले सोर्स और डेस्टिनेशन एड्रेस, पोर्ट, टाइमस्टैम्प और उपलब्ध फीचर्स को वैलिडेट करती है। समय को यू टी सी में सामान्य किया जाता है। इसके बाद संबंधित इतिहास के साथ कॉरिलेशन होता है। सिमुलेशन, रीप्ले और लाइव इतिहास आपस में नहीं मिलाए जाते। डिटेक्शन रूल और उपलब्ध मॉडल अपना अलग विश्लेषण देते हैं। घटना, सबूत, सिवैरिटी और कार्रवाई डेटाबेस में स्टोर होते हैं। फाइल इंपोर्ट की सीमा दो मेगाबाइट और एक हजार रिकॉर्ड है। पूरा बैच वैलिडेट होने के बाद ही इंपोर्ट शुरू होता है।"
+  },
+  {
+    "title": "What the IDS can detect",
+    "subtitle": "A bounded, explainable rule set—not universal attack detection",
+    "kind": "rules",
+    "bullets": ["AUTH: at least 5 reported failed authentications", "SCAN: 8 distinct destination ports in 60 seconds", "RATE: at least 100 connections per minute", "BURST: more than 10 MB in less than 10 seconds", "ENGINE: supplied Suricata signature evidence"],
+    "narration": "आई डी एस यानी इंट्रूज़न डिटेक्शन सिस्टम संदिग्ध संकेत पहचानता है। इस प्रोजेक्ट में पांच या अधिक रिपोर्ट किए गए फेल्ड ऑथेंटिकेशन पर ऑथ रूल लागू होता है। एक सोर्स से साठ सेकंड में आठ अलग डेस्टिनेशन पोर्ट दिखना पोर्ट स्कैन का संकेत माना जाता है। सौ कनेक्शन प्रति मिनट फ्रीक्वेंसी रूल को ट्रिगर कर सकते हैं। दस सेकंड से कम समय में दस मेगाबाइट से ज्यादा ट्रांसफर एक बर्स्ट संकेत है। सुरिकाटा सिग्नेचर भी सबूत बन सकता है। ये संकेत जांच की वजह हैं, हर हमले को पकड़ने या सफल अटैक साबित करने का दावा नहीं।"
+  },
+  {
+    "title": "From alert to investigation",
+    "subtitle": "Make the reasoning visible and preserve analyst review",
+    "kind": "evidence",
+    "bullets": ["Search, filter, sort and paginate", "Inspect rule, risk, evidence and provenance", "Review: open / investigating / resolved / false positive", "Export observations for review"],
+    "narration": "थ्रेट डिटेक्शन पेज पर एडमिन आई पी, कैटेगरी या रूल के आधार पर खोज सकता है। सिवैरिटी और ओरिजिन फिल्टर से जरूरी घटनाएं अलग की जा सकती हैं। इवेंट खोलने पर टाइमस्टैम्प, सोर्स, टारगेट सर्विस, प्रोटोकॉल, रिस्क, उपलब्ध मॉडल स्कोर और कारण दिखते हैं। उदाहरण के लिए, अठारह फेल्ड लॉगिन प्रयास केवल रेड अलर्ट नहीं बनाते, उनका कारण भी लिखा रहता है। एडमिन घटना को इन्वेस्टिगेटिंग, रिजॉल्व्ड या फॉल्स पॉजिटिव मार्क कर सकता है। इससे इंसानी समीक्षा और मॉडल के आउटपुट का फर्क बना रहता है।"
+  },
+  {
+    "title": "IP investigation",
+    "subtitle": "An observed source address is evidence, not a person's identity",
+    "kind": "ip",
+    "bullets": ["First / last seen and related events", "Protocols, ports, targets and asset matches", "Notes, recommendations and block history", "NAT, VPNs, proxies and spoofing affect attribution"],
+    "narration": "आई पी इन्वेस्टिगेशन पेज किसी सोर्स एड्रेस का संदर्भ समझने में मदद करता है। यहां पहली और आखिरी बार देखे जाने का समय, संबंधित घटनाएं, पोर्ट, प्रोटोकॉल, टारगेट डिवाइस और ब्लॉक रिकॉर्ड मिलते हैं। एडमिन अपने नोट्स भी सेव कर सकता है। लेकिन एक महत्वपूर्ण सीमा याद रखें। दिखाई देने वाला आई पी किसी व्यक्ति की पहचान का प्रमाण नहीं है। नैट, वी पी एन, प्रॉक्सी, साझा नेटवर्क और स्पूफिंग की वजह से एट्रिब्यूशन गलत हो सकता है। इसलिए ऑथेंटिकेशन और एंडपॉइंट लॉग के साथ सबूत मिलाना जरूरी है।"
+  },
+  {
+    "title": "IDS versus IPS",
+    "subtitle": "Detection explains a signal. Prevention is a separate decision.",
+    "kind": "ips",
+    "bullets": ["Detection only: observe and alert", "Manual approval: administrator confirms", "Automatic: configured threshold plus safeguards", "ML score alone never triggers a block"],
+    "narration": "आई डी एस और आई पी एस में फर्क समझना जरूरी है। आई डी एस घटना देखता है और अलर्ट देता है। आई पी एस यानी इंट्रूज़न प्रिवेंशन सिस्टम अलग पॉलिसी के आधार पर कार्रवाई करता है। यहां तीन मोड हैं। डिटेक्शन ओनली में नए ब्लॉक नहीं लगते। मैनुअल मोड में एडमिन की पुष्टि चाहिए। ऑटोमैटिक मोड में रूल रिस्क थ्रेशोल्ड और सभी सुरक्षा जांचें पास होना जरूरी है। मशीन लर्निंग स्कोर अपने आप ब्लॉक ट्रिगर नहीं करता। इससे मॉडल की अनिश्चितता को सीधे नेटवर्क कार्रवाई में बदलने से बचाया जाता है।"
+  },
+  {
+    "title": "Safe enforcement workflow",
+    "subtitle": "Preview → confirm → enforce → verify → audit → expire",
+    "kind": "safeguards",
+    "bullets": ["Administrator authorization and rate limits", "Protected management addresses and allowlists", "Temporary block expiry and confirmed removal", "Simulation never claims real packet blocking", "Real adapter: explicitly configured Linux nftables lab"],
+    "narration": "ब्लॉक लगाने से पहले एडमिन लॉगिन, एड्रेस वैलिडेशन, ट्रस्टेड नेटवर्क और अलाउलिस्ट की जांच होती है। लोकलहोस्ट और मैनेजमेंट एड्रेस को गलती से ब्लॉक करने से बचाया जाता है। पहले ड्राई रन प्रीव्यू और फिर पुष्टि होती है। हर कार्रवाई ऑडिट में रहती है और अस्थायी ब्लॉक समय पूरा होने पर एक्सपायर होता है। सिमुलेटेड अडैप्टर केवल डेटाबेस रिकॉर्ड बनाता है, पैकेट नहीं रोकता। वास्तविक कार्रवाई के लिए लिनक्स लैब में एन एफ टेबल्स की स्पष्ट सेटिंग और हाल का लाइव सोर्स इवेंट चाहिए। विंडोज पर वास्तविक फायरवॉल परीक्षण नहीं किया गया है।"
+  },
+  {
+    "title": "A reproducible ML pipeline",
+    "subtitle": "Synthetic development benchmark with a real train / test process",
+    "kind": "ml",
+    "bullets": ["2,400 synthetic flows · seed 42", "1,800 training rows / 600 test rows", "Random Forest versus majority-class baseline", "No rule-risk output or IP identity used as a feature", "Persisted model and evaluation report"],
+    "narration": "ए आई इनसाइट्स केवल सजावटी पैनल नहीं है। ट्रेनिंग स्क्रिप्ट दो हजार चार सौ स्पष्ट रूप से सिंथेटिक फ्लो बनाती है और सीड बयालीस से प्रयोग दोहराया जा सकता है। अठारह सौ रिकॉर्ड ट्रेनिंग और छह सौ टेस्ट के लिए अलग किए जाते हैं। रैंडम फॉरेस्ट की तुलना मेजॉरिटी क्लास बेसलाइन से होती है। फीचर्स में ड्यूरेशन, पैकेट, बाइट, फ्रीक्वेंसी, फेल्ड ऑथेंटिकेशन, एसेट क्रिटिकैलिटी और डेस्टिनेशन पोर्ट हैं। रूल रिस्क या आई पी पहचान को फीचर नहीं बनाया गया। मॉडल और उसकी इवैल्यूएशन रिपोर्ट सेव होती है।"
+  },
+  {
+    "title": "Read the model results honestly",
+    "subtitle": "Held-out synthetic evaluation—not real-world validation",
+    "kind": "metrics",
+    "bullets": ["Suspicious precision: 77.0%", "Recall: 74.6% · F1: 75.7%", "False-positive rate: 21.0%", "Confusion matrix: [[244, 65], [74, 217]]", "Confidence is uncalibrated"],
+    "narration": "इस सेव किए गए सिंथेटिक टेस्ट में संदिग्ध क्लास की प्रिसिजन लगभग सतहत्तर प्रतिशत, रिकॉल चौहत्तर दशमलव छह प्रतिशत और एफ वन पचहत्तर दशमलव सात प्रतिशत है। कन्फ्यूजन मैट्रिक्स में दो सौ चवालीस ट्रू नेगेटिव, पैंसठ फॉल्स पॉजिटिव, चौहत्तर फॉल्स नेगेटिव और दो सौ सत्रह ट्रू पॉजिटिव हैं। फॉल्स पॉजिटिव रेट लगभग इक्कीस प्रतिशत है। यह बताता है कि गलत अलर्ट और छूटे हुए संकेत मौजूद हैं। ये संख्या वास्तविक नेटवर्क की एक्युरेसी नहीं हैं। मॉडल कॉन्फिडेंस भी कैलिब्रेटेड गारंटी नहीं है।"
+  },
+  {
+    "title": "The network digital twin",
+    "subtitle": "A directed graph of virtual assets and permitted access",
+    "kind": "network",
+    "bullets": ["Router, firewall, web, app, database", "User and admin workstations, DNS and sensor", "Edit criticality, vulnerability and access rules", "Analyze reachability and paths to critical assets"],
+    "narration": "डिजिटल ट्विन यहां वास्तविक नेटवर्क का एक वर्चुअल ग्राफ मॉडल है। सैंपल में राउटर, फायरवॉल, वेब सर्वर, एप्लिकेशन सर्वर, डेटाबेस, यूजर और एडमिन वर्कस्टेशन, डी एन एस तथा सेंसर हैं। हर नोड की क्रिटिकैलिटी और वल्नरेबिलिटी बदली जा सकती है। डायरेक्टेड एज यह दिखाती है कि किस डिवाइस से किस डिवाइस तक एक्सेस मॉडल किया गया है। नेटवर्क एक्स रीचेबिलिटी और क्रिटिकल एसेट तक संभावित पाथ निकालता है। ये ग्राफ में मॉडल की गई संभावनाएं हैं, वास्तविक हमलावर की पुष्टि की गई गतिविधियां नहीं।"
+  },
+  {
+    "title": "What-if defense comparison",
+    "subtitle": "Compare a baseline with a controlled change before deployment",
+    "kind": "comparison",
+    "bullets": ["Baseline: web can reach app and database", "Restrict the direct web → database connection", "Patch the simulated application server", "Example modeled risk: 22.3 → 0", "No real devices are attacked or reconfigured"],
+    "narration": "अब सबसे उपयोगी रिसर्च फीचर देखें। मान लीजिए वर्चुअल वेब सर्वर से शुरुआत में समझौता हो चुका है। बेसलाइन में वह एप्लिकेशन सर्वर और डेटाबेस तक पहुंच सकता है। हम सीधे वेब से डेटाबेस वाला लिंक सीमित करते हैं और एप्लिकेशन सर्वर को सिमुलेशन में पैच करते हैं। जांचे गए उदाहरण में मॉडल का रिस्क बाईस दशमलव तीन से शून्य हुआ। इसका मतलब वास्तविक नेटवर्क सौ प्रतिशत सुरक्षित होना नहीं है। यह उसी ग्राफ, एक्सेस नियमों और पैचिंग की सरल धारणा का गणितीय परिणाम है। कोई असली एक्सप्लॉइट या फायरवॉल बदलाव नहीं किया जाता।"
+  },
+  {
+    "title": "Transparent risk scoring",
+    "subtitle": "Explain the assumptions before interpreting an improvement",
+    "kind": "formula",
+    "bullets": ["Risk = 100 × reachable weighted vulnerability / total weighted capacity", "Asset criticality: 1–5 · vulnerability: 0–10", "Critical assets have criticality at least 4", "Enumeration is capped at 500 paths and 8 hops", "Operational cost shows modification counts only"],
+    "narration": "ट्विन रिस्क का फार्मूला खुला है। रीचेबल डिवाइस की क्रिटिकैलिटी और वल्नरेबिलिटी का गुणन जोड़कर, सभी डिवाइस की क्रिटिकैलिटी गुणा दस के कुल से भाग दिया जाता है, और सौ से गुणा होता है। क्रिटिकैलिटी चार या पांच वाले डिवाइस क्रिटिकल माने जाते हैं। पैच किया गया पिवट आगे का समझौता रोकता है, यह एक सरल मॉडलिंग धारणा है। पाथ की सूची पांच सौ पाथ और आठ हॉप तक सीमित है। ऑपरेशनल कॉस्ट में केवल बदले गए लिंक या डिवाइस की गिनती है, अनुमानित पैसे या डाउनटाइम का झूठा दावा नहीं।"
+  },
+  {
+    "title": "Application security",
+    "subtitle": "Administrative controls protect sensitive operations",
+    "kind": "security",
+    "bullets": ["Salted PBKDF2 password hashes", "HttpOnly, SameSite session cookies", "Administrator checks on data and action APIs", "Validated input, upload limits and CSRF checks", "Audit trail and confirmed consequential changes"],
+    "narration": "एप्लिकेशन की अपनी सुरक्षा भी जरूरी है। पासवर्ड प्लेन टेक्स्ट में डेटाबेस में सेव नहीं होते। सॉल्ट के साथ पी बी के डी एफ टू हैश इस्तेमाल होता है। लॉगिन पर ओपेक सेशन टोकन मिलता है, जिसका हैश डेटाबेस में रहता है। ब्राउजर कुकी एच टी टी पी ओनली और सेम साइट स्ट्रिक्ट है। संवेदनशील ए पी आई पर एडमिन रोल जांच होती है। इनपुट और फाइल सीमा वैलिडेट होती है, ओरिजिन जांच और रेट लिमिट लागू हैं। सार्वजनिक डिप्लॉयमेंट के लिए टी एल एस, सिक्योर कुकी और अतिरिक्त प्रोडक्शन हार्डनिंग आवश्यक है।"
+  },
+  {
+    "title": "Reports, APIs and persistence",
+    "subtitle": "Evidence suitable for a college research demonstration",
+    "kind": "reports",
+    "bullets": ["JSON: evidence, actions, audit, model and twin snapshot", "CSV: tabular observations with origin labels", "PDF: paginated research report", "OpenAPI / Swagger documentation", "Alembic migrations and indexed database records"],
+    "narration": "रिपोर्ट्स पेज से जे सन, सी एस वी और पी डी एफ डाउनलोड किए जा सकते हैं। जे सन और पी डी एफ में घटनाएं, डिटेक्शन सबूत, कार्रवाई, फॉल्स पॉजिटिव समीक्षा, मॉडल इवैल्यूएशन और हाल की ट्विन तुलना शामिल होती है। सी एस वी इवेंट टेबल के लिए है। फास्ट ए पी आई स्वैगर और ओपन ए पी आई डॉक्यूमेंटेशन देता है। डेटाबेस में यूजर, सेशन, इवेंट्स, डिवाइस, कनेक्शन, एक्सेस रूल, ब्लॉक, नोट्स और सीनारियो रहते हैं। एलेम्बिक माइग्रेशन से स्कीमा बनाया और बदला जाता है। बड़ी रिपोर्ट की रिकॉर्ड सीमाएं भी स्पष्ट हैं।"
+  },
+  {
+    "title": "Validation and current limits",
+    "subtitle": "Working local research implementation; further lab validation is required",
+    "kind": "validation",
+    "bullets": ["33 backend tests + 7 frontend tests passed", "Production build and real-server exports verified", "Model uses synthetic data, not production traffic", "Zeek is unimplemented", "Real IPS, PostgreSQL and Docker runtime need separate validation"],
+    "narration": "प्रोजेक्ट के वैलिडेशन रिकॉर्ड में तैंतीस बैक एंड और सात फ्रंट एंड टेस्ट पास हैं। प्रोडक्शन बिल्ड, लॉगिन, ब्राउजर नेविगेशन और वास्तविक लोकल सर्वर से रिपोर्ट एक्सपोर्ट भी जांचे गए हैं। फिर भी इसे प्रोडक्शन सिक्योरिटी प्रोडक्ट नहीं कहना चाहिए। मॉडल केवल सिंथेटिक डेटा पर जांचा गया है। जीक सोर्स लागू नहीं किया गया। वास्तविक एन एफ टेबल्स कार्रवाई के लिए अलग अधिकृत लिनक्स लैब परीक्षण चाहिए। पोस्टग्रे एस क्यू एल इंटीग्रेशन और डॉकर रनटाइम भी इस वातावरण में नहीं जांचे गए। सीमाएं बताना अच्छे रिसर्च का हिस्सा है।"
+  },
+  {
+    "title": "How to present the live demo",
+    "subtitle": "http://127.0.0.1:8000/  ·  API docs: /docs",
+    "kind": "closing",
+    "bullets": ["Start: .\\scripts\\start.ps1", "Sign in using the configured local administrator account", "Load simulation → inspect alert → investigate IP", "Preview simulated block → compare twin defenses → export report", "Localhost is accessible on this computer only"],
+    "narration": "प्रेजेंटेशन में पहले लोकल सर्वर शुरू करें और ब्राउजर में एक सौ सत्ताईस डॉट शून्य डॉट शून्य डॉट एक, पोर्ट आठ हजार खोलें। कॉन्फिगर किए गए एडमिन अकाउंट से लॉगिन करें। फिर सिमुलेशन इवेंट्स लोड करके एक संदिग्ध घटना खोलें, उसका कारण समझाएं और सोर्स आई पी की जांच दिखाएं। इसके बाद केवल सिमुलेटेड ब्लॉक का प्रीव्यू, डिजिटल ट्विन में बेसलाइन और डिफेंस तुलना, तथा रिपोर्ट एक्सपोर्ट दिखाएं। लोकलहोस्ट लिंक केवल इसी कंप्यूटर पर काम करता है। इस प्रोजेक्ट की मुख्य सीख है, पहले सबूत समझें, फिर नियंत्रित कार्रवाई करें और डिफेंस को सुरक्षित मॉडल में परखें। धन्यवाद।"
+  }
+]

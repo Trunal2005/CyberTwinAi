@@ -1,0 +1,230 @@
+[
+  {
+    "timestamp": "2026-10-25T04:18:20.583101Z",
+    "src_ip": "192.0.2.44",
+    "dst_ip": "10.10.1.10",
+    "src_port": 40000,
+    "dst_port": 443,
+    "protocol": "TCP",
+    "category": "authentication",
+    "features": {
+      "duration": 0.0,
+      "packets": 30,
+      "bytes": 1000,
+      "frequency": 2,
+      "failed_auth": 18,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:19:20.583376Z",
+    "src_ip": "198.51.100.23",
+    "dst_ip": "10.10.2.10",
+    "src_port": 40001,
+    "dst_port": 22,
+    "protocol": "TCP",
+    "category": "authentication",
+    "features": {
+      "duration": 1.4,
+      "packets": 34,
+      "bytes": 1300,
+      "frequency": 3,
+      "failed_auth": 18,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:20:20.583442Z",
+    "src_ip": "203.0.113.82",
+    "dst_ip": "10.10.3.10",
+    "src_port": 40002,
+    "dst_port": 5432,
+    "protocol": "TCP",
+    "category": "authentication",
+    "features": {
+      "duration": 2.8,
+      "packets": 38,
+      "bytes": 1600,
+      "frequency": 4,
+      "failed_auth": 18,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:21:20.583478Z",
+    "src_ip": "192.0.2.108",
+    "dst_ip": "10.10.1.10",
+    "src_port": 40003,
+    "dst_port": 80,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 4.199999999999999,
+      "packets": 42,
+      "bytes": 1900,
+      "frequency": 5,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:22:20.583509Z",
+    "src_ip": "192.0.2.44",
+    "dst_ip": "10.10.2.10",
+    "src_port": 40004,
+    "dst_port": 443,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 5.6,
+      "packets": 46,
+      "bytes": 2200,
+      "frequency": 130,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:23:20.583539Z",
+    "src_ip": "198.51.100.23",
+    "dst_ip": "10.10.3.10",
+    "src_port": 40005,
+    "dst_port": 22,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 7.0,
+      "packets": 50,
+      "bytes": 2500,
+      "frequency": 7,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:24:20.583568Z",
+    "src_ip": "203.0.113.82",
+    "dst_ip": "10.10.1.10",
+    "src_port": 40006,
+    "dst_port": 5432,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 8.399999999999999,
+      "packets": 54,
+      "bytes": 2800,
+      "frequency": 8,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:25:20.583594Z",
+    "src_ip": "192.0.2.108",
+    "dst_ip": "10.10.2.10",
+    "src_port": 40007,
+    "dst_port": 80,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 9.799999999999999,
+      "packets": 58,
+      "bytes": 3100,
+      "frequency": 9,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": "LAB policy: suspicious service connection",
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:26:20.583622Z",
+    "src_ip": "192.0.2.44",
+    "dst_ip": "10.10.3.10",
+    "src_port": 40008,
+    "dst_port": 443,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 11.2,
+      "packets": 62,
+      "bytes": 3400,
+      "frequency": 10,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:27:20.583650Z",
+    "src_ip": "198.51.100.23",
+    "dst_ip": "10.10.1.10",
+    "src_port": 40009,
+    "dst_port": 22,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 12.6,
+      "packets": 66,
+      "bytes": 3700,
+      "frequency": 11,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:28:20.583678Z",
+    "src_ip": "203.0.113.82",
+    "dst_ip": "10.10.2.10",
+    "src_port": 40010,
+    "dst_port": 5432,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 14.0,
+      "packets": 70,
+      "bytes": 4000,
+      "frequency": 2,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  },
+  {
+    "timestamp": "2026-10-25T04:29:20.583704Z",
+    "src_ip": "192.0.2.108",
+    "dst_ip": "10.10.3.10",
+    "src_port": 40011,
+    "dst_port": 80,
+    "protocol": "TCP",
+    "category": "connection",
+    "features": {
+      "duration": 15.399999999999999,
+      "packets": 74,
+      "bytes": 4300,
+      "frequency": 3,
+      "failed_auth": 0,
+      "criticality": 3
+    },
+    "signature": null,
+    "signature_severity": 2
+  }
+]

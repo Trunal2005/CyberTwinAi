@@ -1,0 +1,14 @@
+{
+  "full_decode": "passed",
+  "resolution": "1920x1080",
+  "video_codec": "H.264",
+  "audio_codec": "AAC",
+  "chapters": 20,
+  "script_duration_seconds": 852.1,
+  "size_bytes": 19756708,
+  "audio_levels": [
+    "[Parsed_volumedetect_0 @ 000001dbb7ea5d80] mean_volume: -22.6 dB",
+    "[Parsed_volumedetect_0 @ 000001dbb7ea5d80] max_volume: -6.0 dB"
+  ],
+  "captions": "Hindi burned in; SRT and VTT supplied; timing approximate"
+}

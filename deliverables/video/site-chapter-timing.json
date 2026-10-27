@@ -1,0 +1,83 @@
+{
+  "duration_seconds": 485.49,
+  "chapters": [
+    {
+      "chapter": 1,
+      "title": "Project introduction",
+      "start_seconds": 0,
+      "duration_seconds": 35.24
+    },
+    {
+      "chapter": 2,
+      "title": "Overview dashboard",
+      "start_seconds": 35.24,
+      "duration_seconds": 36.23
+    },
+    {
+      "chapter": 3,
+      "title": "Start and stop simulated monitoring",
+      "start_seconds": 71.47,
+      "duration_seconds": 36.71
+    },
+    {
+      "chapter": 4,
+      "title": "Filter suspicious events",
+      "start_seconds": 108.18,
+      "duration_seconds": 36.25
+    },
+    {
+      "chapter": 5,
+      "title": "Event evidence and analyst review",
+      "start_seconds": 144.43,
+      "duration_seconds": 34.74
+    },
+    {
+      "chapter": 6,
+      "title": "Investigate the observed source IP",
+      "start_seconds": 179.17,
+      "duration_seconds": 37.04
+    },
+    {
+      "chapter": 7,
+      "title": "Integration status and policy preview",
+      "start_seconds": 216.21,
+      "duration_seconds": 37.36
+    },
+    {
+      "chapter": 8,
+      "title": "Create and remove a simulated block",
+      "start_seconds": 253.57,
+      "duration_seconds": 37.79
+    },
+    {
+      "chapter": 9,
+      "title": "Explore the actual digital twin",
+      "start_seconds": 291.36,
+      "duration_seconds": 37.74
+    },
+    {
+      "chapter": 10,
+      "title": "Run a what-if defense comparison",
+      "start_seconds": 329.1,
+      "duration_seconds": 40.07
+    },
+    {
+      "chapter": 11,
+      "title": "Inspect ML results and try a prediction",
+      "start_seconds": 369.17,
+      "duration_seconds": 38.51
+    },
+    {
+      "chapter": 12,
+      "title": "Export the research report",
+      "start_seconds": 407.68,
+      "duration_seconds": 38.22
+    },
+    {
+      "chapter": 13,
+      "title": "Project recap and limitations",
+      "start_seconds": 445.9,
+      "duration_seconds": 39.59
+    }
+  ]
+}

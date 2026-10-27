@@ -1,0 +1,3 @@
+timestamp,src_ip,dst_ip,src_port,dst_port,protocol,category,duration,packets,bytes,frequency,failed_auth,criticality
+2026-10-25T04:01:00Z,192.0.2.44,10.10.1.10,44001,22,TCP,authentication,3,30,1500,20,18,3
+2026-10-25T04:02:00Z,198.51.100.23,10.10.2.10,44002,443,TCP,connection,12,80,12000,4,0,4

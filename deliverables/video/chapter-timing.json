@@ -1,0 +1,125 @@
+{
+  "duration_seconds": 852.1,
+  "chapters": [
+    {
+      "chapter": 1,
+      "title": "CyberTwin AI",
+      "start_seconds": 0,
+      "duration_seconds": 39.7
+    },
+    {
+      "chapter": 2,
+      "title": "What problem does it solve?",
+      "start_seconds": 39.7,
+      "duration_seconds": 38.45
+    },
+    {
+      "chapter": 3,
+      "title": "System architecture",
+      "start_seconds": 78.15,
+      "duration_seconds": 37.27
+    },
+    {
+      "chapter": 4,
+      "title": "Three origins. Honest status.",
+      "start_seconds": 115.42,
+      "duration_seconds": 37.46
+    },
+    {
+      "chapter": 5,
+      "title": "Overview dashboard",
+      "start_seconds": 152.88,
+      "duration_seconds": 39.98
+    },
+    {
+      "chapter": 6,
+      "title": "The detection pipeline",
+      "start_seconds": 192.86,
+      "duration_seconds": 43.51
+    },
+    {
+      "chapter": 7,
+      "title": "What the IDS can detect",
+      "start_seconds": 236.37,
+      "duration_seconds": 44.64
+    },
+    {
+      "chapter": 8,
+      "title": "From alert to investigation",
+      "start_seconds": 281.01,
+      "duration_seconds": 43.34
+    },
+    {
+      "chapter": 9,
+      "title": "IP investigation",
+      "start_seconds": 324.35,
+      "duration_seconds": 45.31
+    },
+    {
+      "chapter": 10,
+      "title": "IDS versus IPS",
+      "start_seconds": 369.66,
+      "duration_seconds": 42.36
+    },
+    {
+      "chapter": 11,
+      "title": "Safe enforcement workflow",
+      "start_seconds": 412.02,
+      "duration_seconds": 44.16
+    },
+    {
+      "chapter": 12,
+      "title": "A reproducible ML pipeline",
+      "start_seconds": 456.18,
+      "duration_seconds": 43.78
+    },
+    {
+      "chapter": 13,
+      "title": "Read the model results honestly",
+      "start_seconds": 499.96,
+      "duration_seconds": 42.05
+    },
+    {
+      "chapter": 14,
+      "title": "The network digital twin",
+      "start_seconds": 542.01,
+      "duration_seconds": 42.26
+    },
+    {
+      "chapter": 15,
+      "title": "What-if defense comparison",
+      "start_seconds": 584.27,
+      "duration_seconds": 44.54
+    },
+    {
+      "chapter": 16,
+      "title": "Transparent risk scoring",
+      "start_seconds": 628.81,
+      "duration_seconds": 41.62
+    },
+    {
+      "chapter": 17,
+      "title": "Application security",
+      "start_seconds": 670.43,
+      "duration_seconds": 42.74
+    },
+    {
+      "chapter": 18,
+      "title": "Reports, APIs and persistence",
+      "start_seconds": 713.17,
+      "duration_seconds": 46.34
+    },
+    {
+      "chapter": 19,
+      "title": "Validation and current limits",
+      "start_seconds": 759.51,
+      "duration_seconds": 44.93
+    },
+    {
+      "chapter": 20,
+      "title": "How to present the live demo",
+      "start_seconds": 804.44,
+      "duration_seconds": 47.66
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "cybertwin-video-tools",
+  "private": true,
+  "description": "Optional background recording tools; not needed to run the application",
+  "devDependencies": { "@playwright/test": "1.56.1" }
+}

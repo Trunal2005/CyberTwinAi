@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:///./data/cybertwin.db
+      FIREWALL_ADAPTER: simulated
+      REAL_ENFORCEMENT: "false"
+    volumes:
+      - cybertwin-data:/app/data
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    init: true
+volumes:
+  cybertwin-data:

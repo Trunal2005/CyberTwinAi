@@ -1,0 +1,2 @@
+{"timestamp":"2026-10-25T04:00:00Z","event_type":"alert","src_ip":"192.0.2.44","src_port":40555,"dest_ip":"10.10.1.10","dest_port":22,"proto":"TCP","alert":{"signature":"LAB repeated authentication policy","severity":2,"action":"allowed"}}
+{"timestamp":"2026-10-25T04:00:10Z","event_type":"flow","src_ip":"198.51.100.23","src_port":50222,"dest_ip":"10.10.2.10","dest_port":443,"proto":"TCP","flow":{"age":12,"pkts_toserver":20,"pkts_toclient":15,"bytes_toserver":4000,"bytes_toclient":9000}}

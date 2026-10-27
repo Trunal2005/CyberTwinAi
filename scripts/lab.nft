@@ -1,0 +1,16 @@
+# REFERENCE ONLY. Never loaded by this application. Review in an isolated Linux VM.
+# This creates only CyberTwin's dedicated table; it does not flush other firewall tables.
+table inet cybertwin {
+    set blocked4 { type ipv4_addr; flags timeout; }
+    set blocked6 { type ipv6_addr; flags timeout; }
+    chain input {
+        type filter hook input priority -10; policy accept;
+        ip saddr @blocked4 drop
+        ip6 saddr @blocked6 drop
+    }
+    chain forward {
+        type filter hook forward priority -10; policy accept;
+        ip saddr @blocked4 drop
+        ip6 saddr @blocked6 drop
+    }
+}

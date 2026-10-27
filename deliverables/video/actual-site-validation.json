@@ -1,0 +1,95 @@
+{
+  "durationSeconds": 485.49,
+  "resolution": "1920x1080",
+  "codec": "H.264/AAC",
+  "actualWebsiteScenes": 13,
+  "presentationSlidesUsed": 0,
+  "normalUserDataChanged": false,
+  "recordingMethod": "Background Playwright video recording, as used for Anumitra",
+  "editing": "Actual website motion slowed or sped slightly to fit Hindi narration; full viewport retained",
+  "captions": "Hindi; timing estimated within each scene",
+  "pageErrors": [],
+  "fullDecode": "PASS",
+  "bytes": 26621502,
+  "sha256": "7f3a80a8276a177ef6511dbe71032641ea704b1de0b4d344a3b6f5c8b93a214b",
+  "scenes": [
+    {
+      "scene": 1,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 14.161,
+      "narrationSeconds": 34.94
+    },
+    {
+      "scene": 2,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 13.037,
+      "narrationSeconds": 35.93
+    },
+    {
+      "scene": 3,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 26.295,
+      "narrationSeconds": 36.41
+    },
+    {
+      "scene": 4,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 16.84,
+      "narrationSeconds": 35.95
+    },
+    {
+      "scene": 5,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 23.62,
+      "narrationSeconds": 34.44
+    },
+    {
+      "scene": 6,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 16.609,
+      "narrationSeconds": 36.74
+    },
+    {
+      "scene": 7,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 20,
+      "narrationSeconds": 37.06
+    },
+    {
+      "scene": 8,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 29.062,
+      "narrationSeconds": 37.49
+    },
+    {
+      "scene": 9,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 21.739,
+      "narrationSeconds": 37.44
+    },
+    {
+      "scene": 10,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 23.831,
+      "narrationSeconds": 39.77
+    },
+    {
+      "scene": 11,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 20.67,
+      "narrationSeconds": 38.21
+    },
+    {
+      "scene": 12,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 18.808,
+      "narrationSeconds": 37.92
+    },
+    {
+      "scene": 13,
+      "actualWebsiteVideo": true,
+      "rawSeconds": 18.222,
+      "narrationSeconds": 39.29
+    }
+  ]
+}

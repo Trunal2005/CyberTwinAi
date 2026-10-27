@@ -1,0 +1,22 @@
+.venv/
+.cache/
+node_modules/
+frontend/dist/
+__pycache__/
+.pytest_cache/
+.env
+data/
+*.pyc
+*.tsbuildinfo
+test-results/
+playwright-report/
+.ruff_cache/
+# Unrelated business intelligence report and its local rendering assets.
+deliverables/report-layout/
+*.log
+*.db
+*.db-shm
+*.db-wal
+*.joblib
+.env.*
+!.env.example
