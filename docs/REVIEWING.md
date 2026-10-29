@@ -1,5 +1,7 @@
 # Reviewing CyberTwin AI
 
+Start with [the publication validation](PUBLICATION_VALIDATION.md), [CN technical result](CN_UPGRADE_RESULT.md), [upgrade validation](CN_UPGRADE_VALIDATION.md) and [professor practical/demo script](CN_PRACTICAL.md). This publication includes the CN upgrade, database migration 0003, updated media and recent traffic/Settings fixes.
+
 ## Run a fresh clone
 
 Follow the root README in order: clone, install pinned Python dependencies, copy `.env.example`, set your own administrator credentials, migrate, create the administrator, seed, train, install frontend dependencies and build. Then start the server and open http://127.0.0.1:8000. Use the credentials you chose; no account or password is shipped.
@@ -12,7 +14,7 @@ Python 3.13 and Node 20.19+ or 22 are the documented versions. SQLite is the def
 2. Review `backend/security.py`, `schemas.py` and `main.py` for authentication, validation, confirmation and API access checks.
 3. Review `detection.py` and `firewall.py` for event provenance, exclusions, expiry and simulated enforcement. Default simulation never changes the host firewall.
 4. Review `ml.py` and `twin.py` for synthetic evaluation and modeled graph assumptions.
-5. Review `db.py`, Alembic migrations and `frontend/src/` for persistence and the nine API-connected pages.
+5. Review `db.py`, Alembic migrations and `frontend/src/` for persistence and the ten API-connected pages, including PCAP & Traffic Analysis.
 6. Run the automated checks below and the demonstration steps in the README. Import the included `samples/` files as replay data.
 
 ## Automated checks
@@ -31,13 +33,19 @@ On Linux/macOS, use `.venv/bin/python` for the Python command. Tests use isolate
 
 ## Included assets and exclusions
 
-The repository includes source, lockfiles, migrations, examples, tests, Docker configuration, API schema, screenshots, project analysis and the Hindi actual-site walkthrough. The older slide walkthrough is retained as an archive. Media is optional for running the application.
+The repository includes source, lockfiles, migrations, examples, tests, Docker configuration, API schema, screenshots, the A3 poster and the updated 12:45 Hindi/Hinglish actual-site walkthrough. The earlier site and slide videos are retained as archives. Media is optional for running the application.
 
-Local `.env`, accounts, databases, session records, trained joblib artifacts, node_modules, virtual environments, caches and build output are excluded. Setup regenerates the database, model and frontend bundle. An unrelated Business Intelligence report is excluded from this CyberTwin repository.
+Local `.env`, accounts, databases, session records, trained joblib artifacts, node_modules, virtual environments, caches, temporary rendering drafts and build output are excluded. Setup regenerates the database, model and frontend bundle. An unrelated Business Intelligence report is excluded from this CyberTwin repository.
 
-## Optional video recording tools
+## Current video and poster
 
-Watching the included MP4 requires no recording tools. To reproduce the actual-site capture on Windows:
+Watch [the local chapter player](http://127.0.0.1:8000/walkthrough/cn-demo.html) after starting the app. The [video README](../deliverables/video/README.md) links the MP4, transcript, subtitles and validation. The viewer uses a WebM fallback when H.264/AAC is unavailable. The [poster](../deliverables/poster/CyberTwin_AI_A3_Project_Poster.pdf) is one A3 portrait page.
+
+The current video uses offline Piper Hindi narration; no project narration is sent to a service. See [offline reproduction and voice credits](../deliverables/video/CN_VIDEO_README.md). Watching the supplied files requires no TTS or recording tools.
+
+## Archived recording tools
+
+The commands below reproduce the older, archived pre-CN video and use online Google TTS. They are not required to run the app or watch/reproduce the current offline-narrated video. Run them only if you explicitly choose that online narration service:
 
 ```powershell
 Set-Location tools/video

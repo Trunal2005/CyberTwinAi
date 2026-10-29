@@ -4,6 +4,7 @@ node_modules/
 frontend/dist/
 __pycache__/
 .pytest_cache/
+.pytest-tmp/
 .env
 data/
 *.pyc
@@ -20,3 +21,6 @@ deliverables/report-layout/
 *.joblib
 .env.*
 !.env.example
+# Local rendering drafts and duplicate exports; final assets live in deliverables/.
+tmp/
+output/

@@ -2542,3 +2542,21 @@ td .badge {
   }
 }
 @media(max-width:680px){.sidebar-scrim{left:236px}}
+.traffic-filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:20px 0; }
+.traffic-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin:20px 0; }
+.traffic-metrics > div { background:#142237; padding:16px; border-radius:10px; }
+.traffic-metrics small,.traffic-metrics strong { display:block; }
+.traffic-metrics strong { font-size:22px; margin-top:10px; }
+.traffic-distributions { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:18px; margin:22px 0; }
+.traffic-distributions p { display:flex; justify-content:space-between; gap:12px; }
+.flow-decision { border-left:2px solid #39d5c9; padding:12px 18px; margin:14px 0; }
+.flow-decision li { margin:8px 0; }
+.upload-label input { display:block; padding:14px 0; }
+.table-scroll { overflow:auto; max-width:100%; margin:20px 0; }
+.table-scroll table { min-width:960px; width:100%; }
+.table-scroll td small { display:block; }
+.traffic-chart { min-width:0; }
+@media (prefers-reduced-motion:reduce) { .react-flow__edge-path { animation:none!important; } }
+.cn-panel { padding: 20px; }
+.cn-panel > .panel-head { padding-left:0; padding-right:0; }
+.cn-panel .flex-row { flex-wrap:wrap; }

@@ -36,6 +36,52 @@ If a process crashes after committing intent but before recording success, inspe
 
 Switching to detection-only stops new actions but retains existing blocks. Disable the explicit environment flag and revert the adapter to simulated before leaving the lab. Reconcile active elements first. Keep the privileged configuration off your normal workstation.
 
+## Isolated packet-drop validation procedure
+
+**NOT VERIFIED in the Windows development environment.** The following is an optional administrator-run experiment in a disposable Linux VM with console access. Do not execute it on a normal workstation. It creates two isolated namespaces with a private point-to-point link, no default routes and no connection to third-party networks. No host-wide firewall table is modified. Check that `ct-client` and `ct-server` do not already exist; stop if they do. Required local tools: iproute2, nftables, curl and Python. Save evidence and exact tool versions yourself.
+
+```sh
+# Explicit lab administrator opt-in, inside the disposable VM only.
+sudo ip netns add ct-client
+sudo ip netns add ct-server
+sudo ip link add ct-c type veth peer name ct-s
+sudo ip link set ct-c netns ct-client
+sudo ip link set ct-s netns ct-server
+sudo ip -n ct-client addr add 198.18.0.1/30 dev ct-c
+sudo ip -n ct-server addr add 198.18.0.2/30 dev ct-s
+sudo ip -n ct-client link set lo up
+sudo ip -n ct-server link set lo up
+sudo ip -n ct-client link set ct-c up
+sudo ip -n ct-server link set ct-s up
+sudo ip netns exec ct-server nft -f scripts/lab.nft
+sudo ip netns exec ct-server python3 -m http.server 8080 --bind 198.18.0.2 > /tmp/ct-lab-http.log 2>&1 &
+ct_http_pid=$!
+sudo ip netns exec ct-client curl --fail --max-time 3 http://198.18.0.2:8080/
+sudo ip netns exec ct-server nft -j list table inet cybertwin
+```
+
+First establish the successful HTTP baseline. For a mechanism-only test, explicitly add a short element in the **server namespace**, then repeat curl and inspect rule counters:
+
+```sh
+sudo ip netns exec ct-server nft add element inet cybertwin blocked4 '{ 198.18.0.1 timeout 30s }'
+sudo ip netns exec ct-server nft -j list set inet cybertwin blocked4
+sudo ip netns exec ct-client curl --fail --max-time 3 http://198.18.0.2:8080/
+sudo ip netns exec ct-server nft -j list chain inet cybertwin input
+# After the 30-second kernel TTL, confirm HTTP succeeds again.
+```
+
+Record baseline success, timeout during blocking, the source element, an increased matching drop-rule packet counter, then recovery after removal/TTL. A timeout alone is not sufficient evidence of the reason for failure. The kernel counter supports packet traversal/drop in this specific namespace; it is not evidence for all traffic paths or the host network.
+
+This direct native test is **not** an end-to-end CyberTwin/Suricata test. To verify the application integration, run the backend and authorized Suricata sensor inside `ct-server`, with a separate lab database and EVE file, explicit REAL_ENFORCEMENT opt-in and reviewed management exclusions. Obtain genuine fresh EVE observations on `ct-s`, then submit a confirmed block through the administrator UI. Compare its recorded block ID/set membership with the same client HTTP and counter evidence. Do not fabricate a log timestamp to bypass live provenance. The normal workstation database must not be mounted as the lab database. Suricata inline IPS is an additional, separate configuration not implemented by these instructions.
+
+Teardown only the resources created above. Stop the tracked HTTP process and any separately started lab backend/sensor before deleting namespaces. Keep evidence before teardown. If setup fails halfway, inspect `ip netns list` and remove only the named resources created by this experiment; never flush the host ruleset.
+
+```sh
+sudo kill "$ct_http_pid"
+sudo ip netns del ct-client
+sudo ip netns del ct-server
+```
+
 ## Optional Zeek
 
-Zeek is not implemented in this version. Its status stays unconfigured. A future adapter should parse authenticated, server-owned conn/auth logs, preserve missing fields and UTC timestamps, use a separate detection_source, enforce freshness for real observations, and never turn imported historical logs into live traffic.
+Offline Zeek JSON conn.log replay is supported by the authenticated log importer. Missing fields remain unavailable and ICMP records do not become TCP/UDP connections. No live Zeek collector or Zeek authentication-log adapter is implemented, so its live integration status remains unconfigured. See CN_PRACTICAL.md for byte and connection-state semantics.

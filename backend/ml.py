@@ -3,6 +3,9 @@
 import argparse
 import json
 import os
+import time
+import logging
+import pickle
 from pathlib import Path
 
 import joblib
@@ -57,7 +60,9 @@ def train():
         n_estimators=120, max_depth=8, min_samples_leaf=8, random_state=42, n_jobs=1
     )
     baseline = DummyClassifier(strategy="most_frequent")
+    started = time.perf_counter()
     model.fit(x_train, y_train)
+    train_seconds = time.perf_counter() - started
     baseline.fit(x_train, y_train)
     pred = model.predict(x_test)
     matrix = confusion_matrix(y_test, pred, labels=[0, 1]).tolist()
@@ -74,12 +79,30 @@ def train():
         ),
         "confusion_matrix": matrix,
         "false_positive_rate": matrix[0][1] / max(1, sum(matrix[0])),
+        "false_negative_rate": matrix[1][0] / max(1, sum(matrix[1])),
+        "feature_schema": "synthetic-v1",
+        "feature_definitions": {
+            k: "Synthetic generator feature; see backend/ml.py" for k in FEATURES
+        },
+        "class_distribution": {
+            str(k): int(v) for k, v in pd.Series(y).value_counts().items()
+        },
+        "model_version": "synthetic-rf-v1-seed42",
+        "training_seconds": train_seconds,
         "feature_importance": dict(zip(FEATURES, model.feature_importances_.tolist())),
         "limitations": "Independent synthetic rows only. Not calibrated; temporal/group external validation required before deployment.",
     }
     path = model_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump({"model": model, "metrics": metrics}, path)
+    joblib.dump(
+        {
+            "model": model,
+            "metrics": metrics,
+            "features": FEATURES,
+            "imputation": x_train.mean().to_dict(),
+        },
+        path,
+    )
     path.with_suffix(".json").write_text(
         json.dumps(metrics, indent=2), encoding="utf-8"
     )
@@ -109,20 +132,45 @@ def validate_data(x, y):
 
 _cache = None
 _mtime = None
+_loaded_path = None
 
 
 def load():
-    global _cache, _mtime
+    global _cache, _mtime, _loaded_path
     path = model_path()
     if not path.exists():
         return None
-    if _mtime != path.stat().st_mtime_ns:
-        _cache = joblib.load(path)  # Only server-owned artifacts; no upload endpoint.
+    if _mtime != path.stat().st_mtime_ns or _loaded_path != str(path.resolve()):
+        try:
+            _cache = joblib.load(
+                path
+            )  # Only server-owned artifacts; no upload endpoint.
+            if (
+                not isinstance(_cache, dict)
+                or "model" not in _cache
+                or "metrics" not in _cache
+            ):
+                _cache = None
+        except (
+            OSError,
+            ValueError,
+            KeyError,
+            EOFError,
+            ImportError,
+            pickle.UnpicklingError,
+            IndexError,
+            AttributeError,
+        ):
+            logging.getLogger("cybertwin").warning(
+                "Configured model artifact unavailable or incompatible; IDS rules remain active"
+            )
+            _cache = None
         _mtime = path.stat().st_mtime_ns
+        _loaded_path = str(path.resolve())
     return _cache
 
 
-def predict(features, dst_port=None):
+def predict(features, dst_port=None, feature_schema=None):
     bundle = load()
     if not bundle:
         return {
@@ -131,16 +179,45 @@ def predict(features, dst_port=None):
             "confidence": None,
             "explanation": "Model unavailable. Run python -m backend.ml after migrations.",
         }
-    row = {k: features.get(k, 0) for k in FEATURES}
-    row["dst_port"] = dst_port or 0
-    p = float(
-        bundle["model"].predict_proba(pd.DataFrame([row], columns=FEATURES))[0][1]
-    )
+    columns = bundle.get("features", FEATURES)
+    required_schema = bundle["metrics"].get("feature_schema", "synthetic-v1")
+    if required_schema != "synthetic-v1" and feature_schema != required_schema:
+        return {
+            "available": False,
+            "score": None,
+            "confidence": None,
+            "explanation": "Research model requires explicit network-core-v1 feature alignment and validated sensor byte semantics. Raw log/PCAP counters are not automatically interchangeable.",
+        }
+    provided = {**features, "dst_port": dst_port}
+    missing = [k for k in columns if provided.get(k) is None]
+    means = bundle.get("imputation", {})
+    if len(missing) == len(columns) or any(k not in means for k in missing):
+        return {
+            "available": False,
+            "score": None,
+            "confidence": None,
+            "missing_features": missing,
+            "explanation": "Feature-incompatible artifact or input. Retrain with versioned schema; missing values are not silently replaced by zero.",
+        }
+    row = {
+        k: float(provided[k]) if provided.get(k) is not None else float(means[k])
+        for k in columns
+    }
+    if not np.isfinite(list(row.values())).all() or min(row.values()) < 0:
+        raise ValueError("Inference features must be finite and nonnegative")
+    started = time.perf_counter()
+    p = float(bundle["model"].predict_proba(pd.DataFrame([row], columns=columns))[0][1])
     return {
         "available": True,
         "score": round(p * 100, 1),
         "confidence": round(max(p, 1 - p), 3),
-        "explanation": "Synthetic-model probability; uncalibrated and independent of rule risk.",
+        "features_used": row,
+        "missing_features": missing,
+        "imputation": "Training-partition feature means" if missing else None,
+        "model_version": bundle["metrics"].get("model_version", "legacy"),
+        "dataset": bundle["metrics"]["dataset"],
+        "inference_ms": round((time.perf_counter() - started) * 1000, 3),
+        "explanation": "Uncalibrated model probability, independent of IDS and IPS. Missing features use reported training-only means; partial-feature predictions are exploratory.",
     }
 
 

@@ -45,3 +45,4 @@ typing-extensions==4.16.0
 typing-inspection==0.4.4
 tzdata==2026.5
 uvicorn==0.34.2
+scapy==2.8.0

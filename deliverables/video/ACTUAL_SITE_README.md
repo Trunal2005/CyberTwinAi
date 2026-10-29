@@ -1,3 +1,5 @@
+> Archived pre-CN recording. The current video and viewer are documented in [README.md](README.md).
+
 # CyberTwin AI — actual website walkthrough
 
 **Corrected format:** short project introduction followed by the actual running website, menu navigation, scrolling, filtering, event details, review, IP investigation, policy preview, simulated block creation/removal, virtual network, what-if comparison, model prediction and PDF export.

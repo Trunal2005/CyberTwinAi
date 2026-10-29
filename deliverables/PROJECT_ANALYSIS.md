@@ -1,5 +1,7 @@
 # CyberTwin AI — project analysis
 
+Historical pre-CN assessment. For the current ten-page application, PCAP workflow and presentation assets, start with the [root README](../README.md), [CN practical](../docs/CN_PRACTICAL.md) and [publication checks](../docs/PUBLICATION_VALIDATION.md).
+
 Reviewed against the implementation and saved validation artifacts on 25 October 2026.
 
 CyberTwin AI is a functional local research application combining rule-based intrusion detection, source-IP investigation, controlled enforcement workflows, synthetic-data machine learning, and a graph-based network digital twin. It is suitable for a college demonstration when the distinction between simulation and actual network security is explained.

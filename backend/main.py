@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import secrets
+import random
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -51,6 +52,7 @@ from backend.db import (
     now,
 )
 from backend.detection import from_eve, ingest
+from backend.observations import from_zeek
 from backend.firewall import adapter, create_block, expire_blocks, remove_block
 from backend.schemas import (
     BlockInput,
@@ -68,11 +70,18 @@ from backend.twin import analyze
 
 logger = logging.getLogger("cybertwin")
 monitor = {"running": False, "mode": "simulation", "error": None, "last_live": None}
-collector = {"offset": 0, "inode": None, "discarding": False}
+collector = {
+    "offset": 0,
+    "inode": None,
+    "discarding": False,
+    "parse_errors": 0,
+    "backlog_bytes": 0,
+}
+simulation_rng = random.Random(42)
 
 
 def serialize(row):
-    return jsonable_encoder(
+    result = jsonable_encoder(
         {
             c.name: aware(getattr(row, c.name))
             if isinstance(getattr(row, c.name), datetime)
@@ -80,6 +89,14 @@ def serialize(row):
             for c in row.__table__.columns
         }
     )
+    if isinstance(row, Block):
+        result["verification_scope"] = (
+            "SIMULATED — NO REAL PACKETS WERE BLOCKED"
+            if row.adapter == "simulated"
+            else "Historical set membership only; actual packet dropping NOT VERIFIED. Reconcile for current membership."
+        )
+        result["packet_drop_verified"] = False
+    return result
 
 
 async def worker():
@@ -88,10 +105,10 @@ async def worker():
             with SessionLocal() as db:
                 expire_blocks(db)
                 if monitor["running"] and monitor["mode"] == "simulation":
-                    item = sample_events(1)[0].model_copy(update={"timestamp": now()})
-                    # Vary generated flows without making network requests.
-                    item.features.failed_auth = secrets.choice([0, 0, 0, 8, 18])
-                    item.src_ip = sample_events(4)[secrets.randbelow(4)].src_ip
+                    # Reproducible sequence of simulated patterns; timestamps are current.
+                    item = sample_events(12)[simulation_rng.randrange(12)].model_copy(
+                        update={"timestamp": now()}
+                    )
                     ingest(db, item)
                 elif monitor["running"] and monitor["mode"] == "live":
                     path = Path(os.environ["SURICATA_EVE_PATH"])
@@ -112,6 +129,7 @@ async def worker():
                                 collector["discarding"] = not raw_line.endswith(b"\n")
                                 continue
                             if len(raw_line) > 65536:
+                                collector["parse_errors"] += 1
                                 collector["offset"] = stream.tell()
                                 collector["discarding"] = not raw_line.endswith(b"\n")
                                 monitor["error"] = "Oversized EVE record rejected"
@@ -137,9 +155,24 @@ async def worker():
                                     monitor["last_live"] = now()
                                     monitor["error"] = None
                             except (ValueError, KeyError, TypeError, ValidationError):
+                                collector["parse_errors"] += 1
                                 monitor["error"] = (
                                     "Invalid EVE record rejected; check source schema"
                                 )
+                    collector["backlog_bytes"] = max(
+                        0, stat.st_size - collector["offset"]
+                    )
+                    checkpoint = db.get(Setting, "collector_checkpoint") or Setting(
+                        key="collector_checkpoint"
+                    )
+                    checkpoint.value = {
+                        "path": str(path.resolve()),
+                        "inode": stat.st_ino,
+                        "offset": collector["offset"],
+                        "discarding": collector["discarding"],
+                    }
+                    db.add(checkpoint)
+                    db.commit()
         except asyncio.CancelledError:
             raise
         except Exception:
@@ -161,6 +194,9 @@ async def lifespan(app):
 
 
 app = FastAPI(title="CyberTwin AI", version="1.0.0", lifespan=lifespan)
+from backend.traffic_api import router as traffic_router
+
+app.include_router(traffic_router)
 origins = os.getenv(
     "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",")
@@ -373,10 +409,15 @@ def status_payload(db):
             else "connected"
             if ready
             else "error",
-            "ML model": "connected (synthetic)" if bundle else "unconfigured",
+            "ML model": "connected ("
+            + bundle["metrics"].get("feature_schema", "legacy synthetic")
+            + ")"
+            if bundle
+            else "unconfigured",
             "Database": "connected",
         },
         "last_live": monitor["last_live"],
+        "collector": dict(collector),
         "live_configured": live_configured,
     }
 
@@ -405,7 +446,20 @@ def monitoring(body: MonitorInput, user=Depends(admin), db=Depends(db_session)):
             )
         # Start from end so starting monitoring never replays a historic file as live.
         info = Path(path).stat()
-        collector.update(offset=info.st_size, inode=info.st_ino, discarding=False)
+        checkpoint = db.get(Setting, "collector_checkpoint")
+        saved = checkpoint.value if checkpoint else {}
+        if (
+            saved.get("path") == str(Path(path).resolve())
+            and saved.get("inode") == info.st_ino
+            and saved.get("offset", 0) <= info.st_size
+        ):
+            collector.update(
+                offset=saved["offset"],
+                inode=info.st_ino,
+                discarding=saved.get("discarding", False),
+            )
+        else:
+            collector.update(offset=info.st_size, inode=info.st_ino, discarding=False)
     monitor.update(running=body.running, mode=body.mode, error=None, last_live=None)
     audit(db, user.username, "monitor_changed", **body.model_dump())
     db.commit()
@@ -533,12 +587,14 @@ async def import_events(
         parsed = [
             (from_eve(row), "suricata-import")
             if "dest_ip" in row
-            else (EventInput.model_validate(row), "file-import")
+            else (from_zeek(row), "zeek-import")
+            if "id.orig_h" in row
+            else (EventInput.model_validate({**row, "raw_record": row}), "file-import")
             for row in rows
         ]
     except (ValueError, KeyError, TypeError, UnicodeError, ValidationError) as exc:
         raise HTTPException(422, f"Invalid import: {str(exc)[:180]}")
-    for item, source in parsed:
+    for item, source in sorted(parsed, key=lambda r: r[0].timestamp):
         ingest(db, item, "replay", source)
     monitor["mode"] = "replay" if not monitor["running"] else monitor["mode"]
     audit(db, user.username, "events_imported", count=len(parsed), origin="replay")
@@ -597,7 +653,13 @@ def event_detail(id: int, user=Depends(admin), db=Depends(db_session)):
     event = db.get(Event, id)
     if not event:
         raise HTTPException(404, "Event not found")
-    return serialize(event)
+    result = serialize(event)
+    if event.flow_id:
+        from backend.traffic_api import journey
+        from backend.db import Flow
+
+        result["journey"] = journey(db, db.get(Flow, event.flow_id))
+    return result
 
 
 class ReviewInput(BaseModel):
@@ -704,9 +766,62 @@ def block(body: BlockInput, user=Depends(admin), db=Depends(db_session)):
     limiter.check(f"enforce:{user.id}", 10)
     if not body.confirmed:
         raise HTTPException(409, "Preview and confirmation required")
-    return serialize(
-        create_block(db, body.ip, body.reason, body.minutes, user.username)
-    )
+    from backend.db import PreventionDecision
+
+    event = db.get(Event, body.event_id) if body.event_id else None
+    if body.event_id and (not event or event.src_ip != str(body.ip)):
+        raise HTTPException(422, "Selected alert must match the block source")
+    if event and event.risk < config(db)["threshold"]:
+        raise HTTPException(409, "Selected detection is below the configured threshold")
+    try:
+        row = create_block(db, body.ip, body.reason, body.minutes, user.username, event)
+    except HTTPException as exc:
+        if event:
+            db.add(
+                PreventionDecision(
+                    event_id=event.id,
+                    flow_id=event.flow_id,
+                    policy=config(db)["mode"],
+                    outcome="rejected_or_failed",
+                    steps=[
+                        {"stage": "Administrator request", "result": user.username},
+                        {"stage": "Safeguard or adapter", "result": str(exc.detail)},
+                    ],
+                )
+            )
+            db.commit()
+        raise
+    if event:
+        db.add(
+            PreventionDecision(
+                event_id=event.id,
+                flow_id=event.flow_id,
+                block_id=row.id,
+                policy=config(db)["mode"],
+                outcome="simulated"
+                if row.adapter == "simulated"
+                else "set_membership_verified",
+                steps=[
+                    {
+                        "stage": "Detection",
+                        "result": f"Event {event.id}; {event.rule}; risk {event.risk}",
+                    },
+                    {"stage": "Administrator approval", "result": user.username},
+                    {
+                        "stage": "Safeguards",
+                        "result": "Validated source, policy, exclusions and adapter",
+                    },
+                    {
+                        "stage": "Adapter",
+                        "result": "SIMULATED — NO REAL PACKETS WERE BLOCKED"
+                        if row.adapter == "simulated"
+                        else "Kernel set membership verified; actual packet drop NOT VERIFIED",
+                    },
+                ],
+            )
+        )
+        db.commit()
+    return serialize(row)
 
 
 @app.delete("/api/blocks/{id}")
@@ -721,6 +836,22 @@ def unblock(
         raise HTTPException(404, "Block not found")
     remove_block(db, row, user.username)
     return serialize(row)
+
+
+@app.post("/api/blocks/{id}/reconcile")
+def reconcile(
+    id: int, confirmed: bool = False, user=Depends(admin), db=Depends(db_session)
+):
+    from backend.firewall import reconcile_block
+
+    limiter.check(f"reconcile:{user.id}", 10)
+    if not confirmed:
+        raise HTTPException(409, "Confirm read-only reconciliation")
+    row = db.get(Block, id)
+    if not row:
+        raise HTTPException(404, "Block not found")
+    evidence = reconcile_block(db, row, user.username)
+    return {**serialize(row), "reconciliation_evidence": evidence}
 
 
 @app.get("/api/enforcement")
@@ -782,6 +913,12 @@ def network(user=Depends(admin), db=Depends(db_session)):
                     if db.get(AccessRule, c.id)
                     else True
                 ),
+                "allowed_ports": db.get(AccessRule, c.id).allowed_ports
+                if db.get(AccessRule, c.id)
+                else None,
+                "protocol": db.get(AccessRule, c.id).protocol
+                if db.get(AccessRule, c.id)
+                else None,
             }
             for c in db.scalars(select(Connection))
         ],
@@ -850,7 +987,14 @@ def connection(body: ConnectionInput, user=Depends(admin), db=Depends(db_session
     edge = Connection(source=body.source, target=body.target)
     db.add(edge)
     db.flush()
-    db.add(AccessRule(connection_id=edge.id, allowed=body.allowed))
+    db.add(
+        AccessRule(
+            connection_id=edge.id,
+            allowed=body.allowed,
+            allowed_ports=body.allowed_ports,
+            protocol=body.protocol,
+        )
+    )
     audit(db, user.username, "connection_added", source=body.source, target=body.target)
     db.commit()
     return serialize(edge)
@@ -858,6 +1002,8 @@ def connection(body: ConnectionInput, user=Depends(admin), db=Depends(db_session
 
 class AccessInput(BaseModel):
     allowed: bool
+    allowed_ports: list[int] | None = Field(None, max_length=100)
+    protocol: Literal["TCP", "UDP", "ICMP", "OTHER"] | None = None
 
 
 @app.patch("/api/network/connections/{id}")
@@ -866,6 +1012,15 @@ def access(id: int, body: AccessInput, user=Depends(admin), db=Depends(db_sessio
         raise HTTPException(404, "Connection not found")
     row = db.get(AccessRule, id) or AccessRule(connection_id=id)
     row.allowed = body.allowed
+    if body.allowed_ports is not None and any(
+        not 0 <= p <= 65535 for p in body.allowed_ports
+    ):
+        raise HTTPException(422, "Invalid modeled service port")
+    # A boolean-only toggle preserves existing service constraints.
+    if "allowed_ports" in body.model_fields_set:
+        row.allowed_ports = body.allowed_ports
+    if "protocol" in body.model_fields_set:
+        row.protocol = body.protocol
     db.add(row)
     audit(
         db, user.username, "virtual_access_changed", connection=id, allowed=body.allowed
@@ -898,9 +1053,15 @@ def twin(body: SimulationInput, user=Depends(admin), db=Depends(db_session)):
     ).issubset(edge_ids):
         raise HTTPException(422, "Scenario references unknown devices or connections")
     try:
-        baseline = analyze(db, body.initial)
+        baseline = analyze(db, body.initial, protocol=body.protocol, port=body.dst_port)
         modified = analyze(
-            db, body.initial, body.blocked_connections, body.patched, body.isolated
+            db,
+            body.initial,
+            body.blocked_connections,
+            body.patched,
+            body.isolated,
+            body.protocol,
+            body.dst_port,
         )
     except ValueError as exc:
         raise HTTPException(422, str(exc))
@@ -948,12 +1109,15 @@ def metrics(user=Depends(admin)):
 
 class PredictionInput(BaseModel):
     features: Features
-    dst_port: int = Field(443, ge=0, le=65535)
+    dst_port: int | None = Field(None, ge=0, le=65535)
+    feature_schema: str | None = Field(None, max_length=50)
 
 
 @app.post("/api/ml/predict")
 def prediction(body: PredictionInput, user=Depends(admin)):
-    return ml.predict(body.features.model_dump(), body.dst_port)
+    return ml.predict(
+        body.features.model_dump(exclude_unset=True), body.dst_port, body.feature_schema
+    )
 
 
 @app.get("/api/audit")
@@ -965,6 +1129,8 @@ def logs(user=Depends(admin), db=Depends(db_session)):
 
 
 def report_data(db, ip=None):
+    from backend.db import Flow
+
     query = select(Event).order_by(Event.timestamp.desc()).limit(10000)
     if ip:
         query = (
@@ -981,6 +1147,16 @@ def report_data(db, ip=None):
         "scope": "Latest 10,000 matching events; all origins explicitly labeled",
         "ip": ip,
         "events": events,
+        "flows": [
+            serialize(f)
+            for f in db.scalars(
+                select(Flow)
+                .where(Flow.id.in_([e["flow_id"] for e in events if e.get("flow_id")]))
+                .limit(5000)
+            )
+        ]
+        if events
+        else [],
         "summary": {
             "events": len(events),
             "high_risk": sum(e["risk"] >= 70 for e in events),
@@ -1005,7 +1181,7 @@ def report_data(db, ip=None):
         else [],
         "twin": serialize(scenario) if scenario else None,
         "ml": bundle["metrics"] if bundle else "unavailable",
-        "limitations": "Simulated blocks do not affect packets. IP is not identity. Graph paths are modeled possibilities. ML evaluated on synthetic data only.",
+        "limitations": "Simulated blocks do not affect packets. IP is not identity. Graph paths are modeled possibilities. Model metrics apply only to the stated evaluation dataset.",
     }
 
 
@@ -1034,6 +1210,8 @@ def export(
         buffer = io.StringIO()
         fields = [
             "id",
+            "flow_id",
+            "record_key",
             "timestamp",
             "src_ip",
             "src_port",
@@ -1108,7 +1286,11 @@ dist = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 walkthrough = Path(__file__).resolve().parents[1] / "deliverables" / "video"
 if walkthrough.is_dir():
     # Public presentation artifacts only; no credentials, logs or DB files.
-    app.mount("/walkthrough", StaticFiles(directory=walkthrough, html=True), name="walkthrough")
+    app.mount(
+        "/walkthrough",
+        StaticFiles(directory=walkthrough, html=True),
+        name="walkthrough",
+    )
 
 if dist.is_dir():
     app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")

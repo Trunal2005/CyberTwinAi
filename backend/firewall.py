@@ -60,6 +60,32 @@ class NftablesAdapter:
     def set_name(self, ip):
         return "blocked4" if ipaddress.ip_address(ip).version == 4 else "blocked6"
 
+    def contains(self, ip, contents):
+        """Only inspect elements of the requested set, comparing canonical addresses."""
+        document = json.loads(contents)
+        sets = [
+            o["set"]
+            for o in document["nftables"]
+            if "set" in o and o["set"].get("name") == self.set_name(ip)
+        ]
+        if len(sets) != 1:
+            raise RuntimeError("Expected exactly one named firewall set")
+
+        def address(element):
+            if isinstance(element, str):
+                try:
+                    return ipaddress.ip_address(element) == ipaddress.ip_address(ip)
+                except ValueError:
+                    return False
+            if isinstance(element, dict):
+                if "elem" in element:
+                    return address(element["elem"])
+                if "val" in element:
+                    return address(element["val"])
+            return False
+
+        return any(address(e) for e in sets[0].get("elem", []))
+
     def ready(self):
         if (
             platform.system() != "Linux"
@@ -131,22 +157,12 @@ class NftablesAdapter:
         )
         contents = self.run("-j", "list", "set", "inet", "cybertwin", self.set_name(ip))
 
-        # nft JSON represents timeout elements as {elem:{val:..., expires:...}}.
-        def contains(value):
-            if isinstance(value, str):
-                return value == ip
-            if isinstance(value, dict):
-                return any(contains(v) for v in value.values())
-            if isinstance(value, list):
-                return any(contains(v) for v in value)
-            return False
-
-        return contains(json.loads(contents))
+        return self.contains(ip, contents)
 
     def unblock(self, ip):
         # An expired timeout element is already absent. Check first for idempotency.
         contents = self.run("-j", "list", "set", "inet", "cybertwin", self.set_name(ip))
-        if f'"{ip}"' in contents:
+        if self.contains(ip, contents):
             self.run(
                 "delete",
                 "element",
@@ -157,8 +173,8 @@ class NftablesAdapter:
                 ip,
                 "}",
             )
-        return f'"{ip}"' not in self.run(
-            "-j", "list", "set", "inet", "cybertwin", self.set_name(ip)
+        return not self.contains(
+            ip, self.run("-j", "list", "set", "inet", "cybertwin", self.set_name(ip))
         )
 
 
@@ -201,17 +217,25 @@ def create_block(db, ip, reason, minutes, actor, event=None):
         if (
             not event
             or event.origin != "live"
+            or event.detection_source != "suricata"
+            or event.src_ip != ip
+            or aware(event.timestamp) > now() + timedelta(seconds=5)
             or aware(event.timestamp) < now() - timedelta(minutes=10)
         ):
             raise HTTPException(
                 409, "Real enforcement requires a recent verified live observation"
+            )
+        if event.risk < cfg["threshold"]:
+            raise HTTPException(
+                409,
+                "Real enforcement requires detection evidence at or above the configured risk threshold",
             )
     expire_blocks(db)
     uncertain = db.scalar(
         select(Block).where(
             Block.ip == ip,
             Block.adapter == target.name,
-            Block.state.in_(["pending", "error"]),
+            Block.state.in_(["pending", "error", "uncertain"]),
         )
     )
     if uncertain:
@@ -253,7 +277,13 @@ def create_block(db, ip, reason, minutes, actor, event=None):
             adapter=target.name,
             verified=block.verified,
         )
-    except (RuntimeError, subprocess.SubprocessError) as exc:
+    except (
+        RuntimeError,
+        subprocess.SubprocessError,
+        ValueError,
+        KeyError,
+        TypeError,
+    ) as exc:
         block.state = "error"
         audit(db, actor, "block_failed", ip=ip, error=str(exc))
         db.commit()
@@ -272,8 +302,61 @@ def remove_block(db, block, actor):
             raise RuntimeError("Removal not verified")
         block.state = "removed"
         audit(db, actor, "block_removed", ip=block.ip, adapter=block.adapter)
-    except (RuntimeError, subprocess.SubprocessError):
+    except (RuntimeError, subprocess.SubprocessError, ValueError, KeyError, TypeError):
         audit(db, actor, "unblock_failed", ip=block.ip, adapter=block.adapter)
         db.commit()
         raise HTTPException(502, "Removal failed; block retained for recovery")
     db.commit()
+
+
+@serialized
+def reconcile_block(db, block, actor):
+    """Read-only kernel reconciliation. Never adds a rule or IP element."""
+    if block.adapter == "simulated":
+        if block.state in ("pending", "error", "uncertain"):
+            block.state = "error"
+            block.verified = False
+        outcome = "Simulation records have no kernel state; remove uncertain record explicitly"
+    else:
+        target = NftablesAdapter()
+        if not target.ready():
+            block.state = "uncertain"
+            block.verified = False
+            outcome = "Adapter unavailable; current membership NOT VERIFIED"
+        else:
+            try:
+                member = target.contains(
+                    block.ip,
+                    target.run(
+                        "-j",
+                        "list",
+                        "set",
+                        "inet",
+                        "cybertwin",
+                        target.set_name(block.ip),
+                    ),
+                )
+                block.state = (
+                    "active"
+                    if member
+                    else "expired"
+                    if aware(block.expires) <= now()
+                    else "removed"
+                )
+                block.verified = member
+                outcome = f"Current set {target.set_name(block.ip)} membership={member}; packet dropping NOT VERIFIED"
+            except (
+                RuntimeError,
+                ValueError,
+                KeyError,
+                TypeError,
+                subprocess.SubprocessError,
+            ):
+                block.state = "uncertain"
+                block.verified = False
+                outcome = "Could not read kernel state; reconciliation required"
+    audit(
+        db, actor, "block_reconciled", block_id=block.id, ip=block.ip, evidence=outcome
+    )
+    db.commit()
+    return outcome

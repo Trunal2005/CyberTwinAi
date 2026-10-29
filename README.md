@@ -1,8 +1,37 @@
 # CyberTwin AI
 
-A working, local research platform for intrusion detection, controlled prevention, source-IP investigation, and graph-based defense simulation. React + TypeScript + Vite + Tailwind, FastAPI + Pydantic + SQLAlchemy, SQLite, NetworkX, Pandas, and scikit-learn. All nine workspace pages use authenticated APIs and persisted records.
+A working, local research platform for intrusion detection, controlled prevention, source-IP investigation, and graph-based defense simulation. React + TypeScript + Vite + Tailwind, FastAPI + Pydantic + SQLAlchemy, SQLite, NetworkX, Pandas, and scikit-learn. All ten workspace pages use authenticated APIs and persisted records.
+
+## Start reviewing
+
+- **Run the application:** follow the Windows or Linux/macOS setup below. A fresh clone creates its own database, administrator account, model and frontend build.
+- **Review the CN workflow:** [professor practical](docs/CN_PRACTICAL.md), [reviewer guide](docs/REVIEWING.md), [research-data workflow](docs/RESEARCH_DATA.md).
+- **Presentation poster:** [A3 project poster](deliverables/poster/CyberTwin_AI_A3_Project_Poster.pdf).
+- **Actual-site Hinglish video:** [download MP4](deliverables/video/CyberTwin-AI-CN-Site-Explanation-Hinglish.mp4), 12:45 / 16 chapters. With the server running, open [the video player](http://127.0.0.1:8000/walkthrough/cn-demo.html). It includes a WebM browser fallback, transcript and subtitles; all narration was generated locally.
+- **Validation:** [publication checks](docs/PUBLICATION_VALIDATION.md) and the [CN upgrade record](docs/CN_UPGRADE_VALIDATION.md). GitHub Actions runs backend, frontend and browser checks on pushes.
 
 **Default: SIMULATION, monitoring stopped, detection-only, simulated firewall.** No startup command changes the host firewall. Seeded/generated observations are labeled simulation; every uploaded log is replay. A fresh, explicitly configured server-owned Suricata EVE source is required for live observations. Observed IPs are not proof of identity.
+
+
+## Computer Networks upgrade
+
+Completed upgrade evidence: [technical result and exact file manifest](docs/CN_UPGRADE_RESULT.md), [final test report](docs/CN_UPGRADE_VALIDATION.md), and [reviewed observed-network screenshot](docs/screenshots/cn-observed-network.png).
+
+Start with [the practical explanation and professor demo](docs/CN_PRACTICAL.md), [upgrade audit](docs/CN_UPGRADE_AUDIT.md) and [local real-dataset research workflow](docs/RESEARCH_DATA.md). PCAP and Traffic Analysis now connects normalized flows, original evidence, IDS findings, explicit prevention decisions and observed endpoint overlays on the existing virtual network. Observed edges and modeled paths are labeled separately.
+
+Existing installations: stop the server, install updated pinned dependencies, back up the SQLite database, then run migration 0003. No historical measurement is invented; existing event records remain intact. Run:
+
+```powershell
+# After creating .env as described below; preserves existing accounts.
+.\scripts\setup.ps1
+.\scripts\start.ps1
+```
+
+The setup script backs up existing SQLite data to ignored `.cache/backups/`, migrates, preserves accounts, seeds missing data, explicitly extends the virtual CN model, retrains the synthetic benchmark and builds the frontend. It does not enable monitoring or enforcement. If .env is absent it creates the template and asks you to edit credentials before rerunning. PostgreSQL users must back up with their database tools and use the manual migration steps.
+
+Upload `samples/cn-demo.pcap` or `.pcapng` on PCAP and Traffic Analysis. These are deterministic, owned header-only lab examples, generated without sending traffic by `python scripts/generate_cn_capture.py`. No Npcap, cloud service, administrator privileges or Linux installation is required for replay. Files are bounded to 2 MB; captures to 10,000 packets/1,000 conversations. Offline imports are always REPLAY.
+
+Open Network Digital Twin → Observed traffic to replay stored endpoint observations, inspect flows and action timelines, save virtual positions and edit service permissions. The existing what-if workbench remains available. Real Linux firewall packet dropping is **NOT VERIFIED** here; the optional namespace-only procedure is in [LAB.md](docs/LAB.md). Archived video artifacts describe the earlier UI and are not evidence that the upgrade's live/kernel features were exercised.
 
 ## Quick start (Windows PowerShell)
 
@@ -28,7 +57,7 @@ Edit `.env`: choose `ADMIN_USERNAME` and a unique `ADMIN_PASSWORD` with at least
 ```powershell
 .\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m backend.manage create-admin
-.\.venv\Scripts\python.exe -m backend.seed
+.\.venv\Scripts\python.exe -m backend.seed --extend-network
 .\.venv\Scripts\python.exe -m backend.ml
 Set-Location frontend
 npm ci
@@ -41,7 +70,7 @@ Open [CyberTwin](http://127.0.0.1:8000) and sign in. The built frontend and API 
 
 Each clone starts without accounts, a database or model artifacts. Run every setup step above and sign in with the credentials you set in your own `.env`. Seeding creates 48 labeled simulation events; training creates the local synthetic model. There is no shared default password.
 
-For a structured code review, see [the reviewer guide](docs/REVIEWING.md). The [desktop screenshot](docs/screenshots/overview.png) and [mobile screenshot](docs/screenshots/mobile.png) show the interface before setup. After starting the app, watch the [actual-site Hindi walkthrough](http://127.0.0.1:8000/walkthrough/site.html); its MP4, captions and transcript are included in `deliverables/video/`.
+For a structured code review, see [the reviewer guide](docs/REVIEWING.md). Preview the upgraded [traffic analysis](docs/screenshots/cn-traffic-analysis.png), [linked flow evidence](docs/screenshots/cn-flow-journey.png) and [observed network](docs/screenshots/cn-observed-network.png). After starting the app, watch the [actual-site Hinglish walkthrough](http://127.0.0.1:8000/walkthrough/cn-demo.html); its MP4, WebM, captions and transcript are included in `deliverables/video/`.
 
 For frontend development, run `scripts/start.ps1 -Dev`, then run `npm run dev` in `frontend` in a second terminal and open [Vite](http://127.0.0.1:5173). Its `/api` proxy targets port 8000. The production backend must be restarted after the first build so it mounts `dist`.
 
@@ -57,7 +86,7 @@ cp .env.example .env
 # Set your administrator credentials in .env before proceeding.
 python -m alembic upgrade head
 python -m backend.manage create-admin
-python -m backend.seed
+python -m backend.seed --extend-network
 python -m backend.ml
 cd frontend && npm ci && npm run build && cd ..
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
@@ -112,7 +141,7 @@ Rule risk: authentication `min(95,60+2*failures)`, port diversity 78, rate 80, b
 
 **IPS** makes a separate enforcement decision: authenticated administrator or qualifying detection → valid unicast IP → policy threshold → protected CIDRs/allowlist/local host checks → rate budget → selected adapter → verification/audit. Detection-only refuses new blocks. Manual mode requires explicit confirmation. Automatic mode runs only after an administrator previews and confirms policy. Turning detection-only on does not remove existing blocks; remove them or let them expire.
 
-**ML score** is a synthetic model's uncalibrated probability, displayed independently. It never alone triggers enforcement. Model confidence is max(p,1-p), not a guarantee. Missing features currently default to zero/declared defaults and may shift predictions; source adapters do not fabricate unavailable authentication/frequency values.
+**ML score** is a synthetic model's uncalibrated probability, displayed independently. It never alone triggers enforcement. Model confidence is max(p,1-p), not a guarantee. Missing observed features stay unavailable. Versioned model bundles can apply explicitly disclosed training-partition mean imputation; predictions identify every missing and imputed feature. Legacy artifacts without imputation metadata refuse incompatible input. Source adapters do not fabricate authentication/frequency values.
 
 **Twin risk** = `100 × Σ(reachable criticality × vulnerability) / Σ(all criticality × 10)`. Scores are illustrative normalized model units. Critical assets have criticality ≥4. Access edges are directed. Patching sets vulnerability to zero and prevents onward traversal from that pivot, except the initially compromised node. This simplified assumption does not establish real exploitability. Isolated nodes lose inbound/outbound edges. Enumeration is capped at 500 simple paths and 8 hops; reachability itself is complete. A truncated path count is a lower bound. Operational cost displays counts of changed links/devices, not invented downtime or savings.
 
@@ -130,7 +159,7 @@ Rule risk: authentication `min(95,60+2*failures)`, port diversity 78, rate 80, b
 
 ## Suricata and real enforcement
 
-Read [the isolated lab guide](docs/LAB.md) before configuring a real source or adapter. Suricata is an external sensor, not installed or started by CyberTwin. EVE file parsing is implemented; optional Zeek is visibly unconfigured in this build. Live status requires explicit `SURICATA_LIVE_CONFIRMED=true`, a server-owned readable path, active collection and a valid record timestamp within 90 seconds (at most 5 seconds in the future). Stale records encountered after rotation are REPLAY. Start from EOF; stopped collectors cannot remain live. Log freshness verifies ingestion, not independent proof that the sensor's selected interface captures all network traffic.
+Read [the isolated lab guide](docs/LAB.md) before configuring a real source or adapter. Suricata is an external sensor, not installed or started by CyberTwin. EVE file parsing is implemented; offline Zeek JSON conn.log replay is supported while its live collector remains unconfigured. Live status requires explicit `SURICATA_LIVE_CONFIRMED=true`, a server-owned readable path, active collection and a valid record timestamp within 90 seconds (at most 5 seconds in the future). Stale records encountered after rotation are REPLAY. Start from EOF; stopped collectors cannot remain live. Log freshness verifies ingestion, not independent proof that the sensor's selected interface captures all network traffic.
 
 Real adapter implementation targets Linux nftables only and is unavailable on Windows. Simulation and uploaded/replayed events can never produce real blocks. Real blocks additionally require a source-matching live observation from the preceding ten minutes. `IPS ENFORCEMENT ENABLED` requires explicitly configured adapter, readable sets/rules and a non-detection policy; it says the enforcement mechanism is enabled, not that any specific packet was dropped. An individual `verified` block confirms set membership, not end-to-end packet delivery measurements.
 
@@ -140,7 +169,7 @@ Real adapter implementation targets Linux nftables only and is unavailable on Wi
 
 The current held-out synthetic run has 600 test rows, confusion matrix `[[244,65],[74,217]]`, suspicious precision 0.770, recall 0.746, F1 0.757, and false-positive rate 0.210. These come from running the script, not dashboard constants. UI always fetches the loaded artifact's actual report. Synthetic row independence is useful for smoke tests, not external validity.
 
-For a college study: state the authorized lab and threat model; compare IDS rules, majority baseline and RF on the same ground truth; report precision/recall/F1 and false positives with class balance; evaluate held-out hosts/sessions/time periods in any real dataset; fit preprocessing only on training partitions; keep tuning separate from the final test; report calibration, repeated-seed confidence intervals, dataset provenance/license, leakage checks, missed detections and latency. Compare twin defenses using fixed baseline snapshots and publish the formula/assumptions. Have humans review false positives. Never infer an improvement in actual network safety from synthetic metrics alone. Real-data training is a documented future extension; the implemented training CLI currently uses only its included synthetic generator.
+For a college study: state the authorized lab and threat model; compare IDS rules, majority baseline and RF on the same ground truth; report precision/recall/F1 and false positives with class balance; evaluate held-out hosts/sessions/time periods in any real dataset; fit preprocessing only on training partitions; keep tuning separate from the final test; report calibration, repeated-seed confidence intervals, dataset provenance/license, leakage checks, missed detections and latency. Compare twin defenses using fixed baseline snapshots and publish the formula/assumptions. Have humans review false positives. Never infer an improvement in actual network safety from synthetic metrics alone. The default `backend.ml` command trains the included synthetic benchmark. An optional local CSV evaluator, `backend.research_ml`, compares majority, logistic-regression and Random Forest models using group-disjoint splits; see [RESEARCH_DATA.md](docs/RESEARCH_DATA.md). No published real dataset is bundled, downloaded or claimed as evaluated here.
 
 Primary references: [Suricata EVE format](https://docs.suricata.io/en/suricata-8.0.6/output/eve/eve-json-format.html), [scikit-learn common pitfalls](https://scikit-learn.org/stable/common_pitfalls.html), [Random Forest reference](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html).
 
@@ -158,7 +187,7 @@ The image runs an unprivileged user and includes built frontend and API. Compose
 docker compose build
 docker compose run --rm app python -m alembic upgrade head
 docker compose run --rm app python -m backend.manage create-admin
-docker compose run --rm app python -m backend.seed
+docker compose run --rm app python -m backend.seed --extend-network
 docker compose run --rm app python -m backend.ml
 docker compose up
 ```
@@ -190,4 +219,4 @@ Tests cover rule thresholds, provenance/time correlation, IPv4/IPv6 exclusions, 
 
 ## Honest limits
 
-This is a single-node research application, not a production SOC or complete NDR product. It lacks MFA/SSO, distributed rate limiting, tenant separation, tamper-evident audit storage, automated retention, calibrated real-world ML, full packet capture, detection of every technique, sensor deployment orchestration, Zeek parsing and external reputation/geolocation services. General event APIs are administrator-created simulations; uploads are replay. Virtual graph assets are not auto-discovered. Live nftables behavior is implemented but requires isolated Linux-lab verification before use; no real firewall was changed during development. Captured source IPs may be shared/spoofed. Use an authenticated TLS reverse proxy, restricted network exposure, separate least-privilege enforcement service, secrets management, current dependency security review and real labeled evaluation before considering production deployment.
+This is a single-node research application, not a production SOC or complete NDR product. It lacks MFA/SSO, distributed rate limiting, tenant separation, tamper-evident audit storage, automated retention, calibrated real-world ML, full packet capture, detection of every technique, sensor deployment orchestration, live Zeek collection and external reputation/geolocation services. General event APIs are administrator-created simulations; uploads are replay. Virtual graph assets are not auto-discovered. Live nftables behavior is implemented but requires isolated Linux-lab verification before use; no real firewall was changed during development. Captured source IPs may be shared/spoofed. Use an authenticated TLS reverse proxy, restricted network exposure, separate least-privilege enforcement service, secrets management, current dependency security review and real labeled evaluation before considering production deployment.

@@ -17,3 +17,4 @@ numpy==2.2.5
 scipy==1.15.3
 anyio==4.15.1
 starlette==1.10.0
+scapy==2.8.0

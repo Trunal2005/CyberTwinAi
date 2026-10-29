@@ -5,12 +5,12 @@ table inet cybertwin {
     set blocked6 { type ipv6_addr; flags timeout; }
     chain input {
         type filter hook input priority -10; policy accept;
-        ip saddr @blocked4 drop
-        ip6 saddr @blocked6 drop
+        ip saddr @blocked4 counter drop
+        ip6 saddr @blocked6 counter drop
     }
     chain forward {
         type filter hook forward priority -10; policy accept;
-        ip saddr @blocked4 drop
-        ip6 saddr @blocked6 drop
+        ip saddr @blocked4 counter drop
+        ip6 saddr @blocked6 counter drop
     }
 }

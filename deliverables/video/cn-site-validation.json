@@ -1,0 +1,34 @@
+{
+  "duration_seconds": 765.31,
+  "resolution": "1920x1080",
+  "codec": "H.264/AAC",
+  "chapters": 16,
+  "actual_website_beats": 31,
+  "slides": 0,
+  "narration_engine": "Piper Hindi pratham, offline",
+  "narration_sent_to_external_service": false,
+  "full_decode": "PASS",
+  "page_errors": [],
+  "main_database_changed": false,
+  "simulated_firewall": true,
+  "bytes": 37950174,
+  "sha256": "90352e3b6a22bcc8004310b15b37c0b16c2c9c099fd29d3d40f5f05f332c8b0a",
+  "browser_player": {
+    "duration": 765.726,
+    "width": 1920,
+    "height": 1080,
+    "source": "http://127.0.0.1:8000/walkthrough/CyberTwin-AI-CN-Site-Explanation-Hinglish.webm",
+    "networkState": 1,
+    "chapters": 16,
+    "localPlayer": "PASS",
+    "playback": "PASS",
+    "chapterSeek": "PASS",
+    "rangeStreaming": "PASS",
+    "pageErrors": []
+  },
+  "browser_fallback": {
+    "codec": "VP9/Opus",
+    "bytes": 41490978,
+    "sha256": "2b86dce1690835fb1b0d475d39c2b976e66d168f61017ffffff198bf4187c24e"
+  }
+}

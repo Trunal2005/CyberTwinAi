@@ -1,5 +1,7 @@
 # Validation record — 25 October 2026
 
+Latest CN upgrade checks, 28 October 2026: **71 backend tests, 11 frontend tests, production build and 10 browser checkpoints passed**. See [the detailed current validation record](CN_UPGRADE_VALIDATION.md). The older results below remain historical records.
+
 ## Repository publication check — 27 October 2026
 
 - Backend suite rerun: **33 passed**, with the same upstream TestClient deprecation warning.

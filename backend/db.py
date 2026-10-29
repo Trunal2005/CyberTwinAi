@@ -6,6 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import (
     Boolean,
+    BigInteger,
     CheckConstraint,
     DateTime,
     Float,
@@ -15,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    Index,
     create_engine,
     event,
 )
@@ -69,6 +71,9 @@ class Session(Base):
 class Event(Base):
     __tablename__ = "events"
     __table_args__ = (
+        Index(
+            "ix_events_correlation", "src_ip", "origin", "detection_source", "timestamp"
+        ),
         CheckConstraint("risk BETWEEN 0 AND 100", name="ck_event_risk"),
         CheckConstraint(
             "origin IN ('simulation','replay','live')", name="ck_event_origin"
@@ -93,6 +98,54 @@ class Event(Base):
     features: Mapped[dict] = mapped_column(JSON)
     action: Mapped[str] = mapped_column(String(100), default="observed")
     status: Mapped[str] = mapped_column(String(30), default="open")
+    flow_id: Mapped[str | None] = mapped_column(
+        ForeignKey("network_flows.id"), index=True
+    )
+    record_key: Mapped[str | None] = mapped_column(String(64), unique=True)
+    observation: Mapped[dict | None] = mapped_column(JSON)
+    detection: Mapped[dict | None] = mapped_column(JSON)
+
+
+class Flow(Base):
+    __tablename__ = "network_flows"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    origin: Mapped[str] = mapped_column(String(20), index=True)
+    sensor: Mapped[str] = mapped_column(String(80), index=True)
+    sensor_flow_id: Mapped[str | None] = mapped_column(String(100))
+    first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    src_ip: Mapped[str] = mapped_column(String(45), index=True)
+    dst_ip: Mapped[str] = mapped_column(String(45), index=True)
+    src_port: Mapped[int | None]
+    dst_port: Mapped[int | None]
+    ip_version: Mapped[int]
+    protocol: Mapped[str] = mapped_column(String(20), index=True)
+    app_protocol: Mapped[str | None] = mapped_column(String(80))
+    packets: Mapped[int | None] = mapped_column(BigInteger)
+    bytes_src: Mapped[int | None] = mapped_column(BigInteger)
+    bytes_dst: Mapped[int | None] = mapped_column(BigInteger)
+    total_bytes: Mapped[int | None] = mapped_column(BigInteger)
+    duration: Mapped[float | None]
+    state: Mapped[str | None] = mapped_column(String(40))
+    tcp_flags: Mapped[str | None] = mapped_column(String(80))
+    availability: Mapped[dict] = mapped_column(JSON)
+    limitations: Mapped[list] = mapped_column(JSON)
+    risk: Mapped[int] = mapped_column(default=0)
+
+
+class PreventionDecision(Base):
+    __tablename__ = "prevention_decisions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), index=True)
+    flow_id: Mapped[str | None] = mapped_column(
+        ForeignKey("network_flows.id"), index=True
+    )
+    block_id: Mapped[int | None] = mapped_column(ForeignKey("blocks.id"), index=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    policy: Mapped[str] = mapped_column(String(30))
+    outcome: Mapped[str] = mapped_column(String(50))
+    steps: Mapped[list] = mapped_column(JSON)
 
 
 class Device(Base):
@@ -111,6 +164,7 @@ class Device(Base):
     vulnerability: Mapped[int]
     x: Mapped[float] = mapped_column(Float, default=0)
     y: Mapped[float] = mapped_column(Float, default=0)
+    segment: Mapped[str | None] = mapped_column(String(80))
 
 
 class Connection(Base):
@@ -130,6 +184,8 @@ class AccessRule(Base):
         ForeignKey("connections.id"), primary_key=True
     )
     allowed: Mapped[bool] = mapped_column(Boolean, default=True)
+    allowed_ports: Mapped[list | None] = mapped_column(JSON)
+    protocol: Mapped[str | None] = mapped_column(String(20))
 
 
 class Block(Base):

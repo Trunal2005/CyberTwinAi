@@ -70,10 +70,12 @@ import {
 import "@xyflow/react/dist/style.css";
 import { api, send, download, type SecurityEvent } from "./api";
 import "./style.css";
+import { TrafficAnalysis, ObservedNetwork, FlowEvidence } from "./network";
 
 const NAV = [
   ["Overview", LayoutDashboard],
   ["Live Monitoring", Radio],
+  ["PCAP & Traffic Analysis", Activity],
   ["Threat Detection", ShieldAlert],
   ["IP Investigation", Search],
   ["Blocklist", Ban],
@@ -1030,6 +1032,12 @@ function EventDetail({
         <summary>Available flow features</summary>
         <pre>{JSON.stringify(event.features, null, 2)}</pre>
       </details>
+      {(event as any).flow_id && (
+        <details>
+          <summary>Linked flow journey and IPS timeline</summary>
+          <FlowEvidence id={(event as any).flow_id} />
+        </details>
+      )}
       <label>
         Investigation status
         <select value={review} onChange={(e) => setReview(e.target.value)}>
@@ -1624,6 +1632,13 @@ function DeviceForm({
               />
             </label>
           ))}
+          <label>
+            Network segment
+            <input
+              value={form.segment || ""}
+              onChange={(e) => setForm({ ...form, segment: e.target.value })}
+            />
+          </label>
         </div>
         <p className="subtle">
           This edits a virtual asset; no real device is contacted.
@@ -1737,21 +1752,26 @@ function Twin({
       </div>
       <div className="twin-toolbar">
         <div className="segmented">
-          {["Scenario", "Devices & connections", "Saved comparisons"].map(
-            (t) => (
-              <button
-                className={tab === t ? "active" : ""}
-                onClick={() => setTab(t)}
-                key={t}
-              >
-                {t}
-              </button>
-            ),
-          )}
+          {[
+            "Scenario",
+            "Observed traffic",
+            "Devices & connections",
+            "Saved comparisons",
+          ].map((t) => (
+            <button
+              className={tab === t ? "active" : ""}
+              onClick={() => setTab(t)}
+              key={t}
+            >
+              {t}
+            </button>
+          ))}
         </div>
         <Badge tone="violet">SIMULATION ONLY</Badge>
       </div>
-      {tab === "Saved comparisons" ? (
+      {tab === "Observed traffic" ? (
+        <ObservedNetwork topology={data} refresh={refresh} notify={notify} />
+      ) : tab === "Saved comparisons" ? (
         <Panel title="Saved comparisons">
           {history?.length ? (
             history.map((h: any) => (
@@ -2112,12 +2132,29 @@ function Twin({
                   </div>
                 </div>
                 <div className="formula">{result.modified.formula}</div>
+                <details>
+                  <summary>
+                    Reachable modeled services and changed permissions
+                  </summary>
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        baseline: result.baseline.reachable_services,
+                        modified: result.modified.reachable_services,
+                        changes: result.changes,
+                        path_work: result.modified.enumeration_steps,
+                      },
+                      null,
+                      2,
+                    )}
+                  </pre>
+                </details>
               </Panel>
               <Panel
                 title="Possible paths to critical assets"
                 subtitle={
                   result.modified.truncated
-                    ? "Results capped at 500 paths / 8 hops"
+                    ? "Lower-bound count: 500 paths, 8 hops or 20,000 exploration steps reached"
                     : "Directed reachability in the modified graph"
                 }
               >
@@ -2245,8 +2282,8 @@ function AIInsights({ refresh, notify }: { refresh: number; notify: Notify }) {
       <div className="notice violet-notice">
         <BrainCircuit />
         <span>
-          Research model · Evaluated on a clearly identified synthetic flow
-          dataset. Metrics describe this benchmark only and do not establish
+          Research model · Dataset and feature schema are identified below.
+          Metrics describe the loaded benchmark only and do not establish
           real-world detection accuracy.
         </span>
       </div>
@@ -2276,7 +2313,7 @@ function AIInsights({ refresh, notify }: { refresh: number; notify: Notify }) {
                   {((value as number) * 100).toFixed(1)}
                   <em>%</em>
                 </strong>
-                <p>Synthetic held-out test set</p>
+                <p>Loaded model held-out test set</p>
               </div>
             ))}
           </div>
@@ -2342,6 +2379,29 @@ function AIInsights({ refresh, notify }: { refresh: number; notify: Notify }) {
             </Panel>
           </div>
           <Panel title="Baseline comparison & evaluation design">
+            <p>
+              Model: {m.model_version || "Legacy synthetic model"} · schema:{" "}
+              {m.feature_schema || "legacy"} · false-negative rate:{" "}
+              {m.false_negative_rate == null
+                ? "Unavailable"
+                : (m.false_negative_rate * 100).toFixed(1) + "%"}
+            </p>
+            <details>
+              <summary>Training metadata and feature definitions</summary>
+              <pre>
+                {JSON.stringify(
+                  {
+                    definitions: m.feature_definitions,
+                    classes: m.class_distribution,
+                    training_seconds: m.training_seconds,
+                    groups: m.test_groups,
+                    models: m.models,
+                  },
+                  null,
+                  2,
+                )}
+              </pre>
+            </details>
             <div className="detail-grid">
               <div>
                 <small>Candidate weighted F1</small>
@@ -2415,7 +2475,7 @@ function AIInsights({ refresh, notify }: { refresh: number; notify: Notify }) {
             <div>
               <strong>
                 {prediction.available
-                  ? `Synthetic model score: ${prediction.score}/100 · confidence ${(prediction.confidence * 100).toFixed(1)}%`
+                  ? `Model score: ${prediction.score}/100 · confidence ${(prediction.confidence * 100).toFixed(1)}%`
                   : "Model unavailable"}
               </strong>
               <p>{prediction.explanation}</p>
@@ -2554,7 +2614,7 @@ function SettingsPage({
           subtitle="Connection states are checked by the backend"
         >
           {status &&
-            Object.entries(status.integrations).map(([name, state]) => (
+            Object.entries(status.integrations ?? {}).map(([name, state]) => (
               <div className="integration-row" key={name}>
                 <span className="square-icon">
                   {name === "ML model" ? (
@@ -2803,12 +2863,19 @@ function App() {
       .catch(() => {})
       .finally(() => setChecking(false));
     const expired = () => setUser(null);
+    const flowInvestigation = (e: Event) => {
+      setIP((e as CustomEvent<string>).detail);
+      setPage("IP Investigation");
+      location.hash = encodeURIComponent("IP Investigation");
+    };
     const hash = () =>
       setPage(decodeURIComponent(location.hash.slice(1)) || "Overview");
     window.addEventListener("session-expired", expired);
+    window.addEventListener("flow-investigation", flowInvestigation);
     window.addEventListener("hashchange", hash);
     return () => {
       window.removeEventListener("session-expired", expired);
+      window.removeEventListener("flow-investigation", flowInvestigation);
       window.removeEventListener("hashchange", hash);
     };
   }, []);
@@ -2846,6 +2913,8 @@ function App() {
   const subtitles: Record<string, string> = {
     Overview: "Your security posture, at a glance.",
     "Live Monitoring": "Every connection has a story. Follow the signal.",
+    "PCAP & Traffic Analysis":
+      "Packets, conversations and evidence from supported observations.",
     "Threat Detection": "Turn suspicious signals into informed decisions.",
     "IP Investigation": "Connect the evidence. Understand the source.",
     Blocklist: "Controlled prevention, with a complete audit trail.",
@@ -3042,6 +3111,8 @@ function App() {
               onIP={onIP}
               navigate={navigate}
             />
+          ) : page === "PCAP & Traffic Analysis" ? (
+            <TrafficAnalysis {...common} />
           ) : page === "Live Monitoring" || page === "Threat Detection" ? (
             <EventsPage
               {...common}

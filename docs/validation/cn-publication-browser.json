@@ -1,0 +1,17 @@
+{
+  "results": [
+    "Browser login",
+    "PCAP replay, exact evidence and detection-only decision",
+    "Protocol filter and duplicate replay",
+    "Explicit simulated alert approval and timeline",
+    "Observed map, playback, scrub, reduced motion and linked flow",
+    "Pointer drag saves virtual device position",
+    "Browser defense comparison and persisted modeled-risk reduction",
+    "Flow-to-source investigation navigation",
+    "Model evidence and actual prediction",
+    "Same-observation JSON analytics and PDF report",
+    "Direct Settings navigation survives initial health/status loading"
+  ],
+  "pageErrors": [],
+  "server": "isolated simulation only"
+}

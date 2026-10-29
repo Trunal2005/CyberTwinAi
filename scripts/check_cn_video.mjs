@@ -1,0 +1,34 @@
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const require=createRequire(path.join(root,'tools/video/package.json'));
+const {chromium,expect}=require('@playwright/test');
+const browser=await chromium.launch({headless:true,channel:'chromium',args:['--autoplay-policy=no-user-gesture-required']});
+const errors=[];
+try{
+ const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('requestfailed',r=>console.log('Request failed:',r.url(),r.failure()?.errorText));
+ const response=await page.goto('http://127.0.0.1:8000/walkthrough/cn-demo.html');assert.equal(response.status(),200);
+ await page.locator('video').evaluate(v=>{v.preload='auto';v.load()});
+ await page.waitForTimeout(2500);
+ console.log('Initial media state:',await page.locator('video').evaluate(v=>({readyState:v.readyState,networkState:v.networkState,src:v.currentSrc,error:v.error?.message,canPlay:v.canPlayType('video/mp4'),h264:v.canPlayType('video/mp4; codecs="avc1.640028"'),aac:v.canPlayType('audio/mp4; codecs="mp4a.40.2"')})));
+ await page.waitForFunction(()=>{const v=document.querySelector('video');return v&&(v.readyState>=1||v.error)});
+ const meta=await page.locator('video').evaluate(v=>({duration:v.duration,width:v.videoWidth,height:v.videoHeight,error:v.error?.message,source:v.currentSrc,networkState:v.networkState}));
+ console.log(JSON.stringify(meta));
+ assert.equal(meta.width,1920);assert.equal(meta.height,1080);assert.ok(meta.duration>760&&meta.duration<770);assert.equal(meta.error,undefined);
+ assert.equal(await page.locator('#chapters button').count(),16);
+ await page.locator('video').evaluate(v=>{v.muted=true;return v.play()});await page.waitForTimeout(1600);
+ assert.ok(await page.locator('video').evaluate(v=>v.currentTime>0));
+ await page.locator('#chapters button').nth(2).click();await page.waitForTimeout(1600);
+ await expect(page.locator('#chapters button').nth(2)).toHaveClass('active');
+ await page.locator('video').evaluate(v=>v.pause());
+ await page.screenshot({path:path.join(root,'.cache/cn-site-video-20261029/player-qa.png')});
+ const media=await page.request.get('http://127.0.0.1:8000/walkthrough/CyberTwin-AI-CN-Site-Explanation-Hinglish.mp4',{headers:{Range:'bytes=0-1023'}});
+ assert.equal(media.status(),206);assert.equal((await media.body()).length,1024);assert.equal(errors.length,0);
+ const report={...meta,chapters:16,localPlayer:'PASS',playback:'PASS',chapterSeek:'PASS',rangeStreaming:'PASS',pageErrors:errors};
+ fs.writeFileSync(path.join(root,'deliverables/video/cn-player-validation.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
+}finally{await browser.close()}

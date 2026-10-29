@@ -32,6 +32,57 @@ LINKS = [
 ]
 
 
+def extend_cn_topology(db):
+    """Explicit additive lab model extension; preserve existing asset edits."""
+    for id, name, kind, ip, x, y in [
+        (
+            "external",
+            "External network boundary",
+            "External",
+            "203.0.113.254",
+            -260,
+            120,
+        ),
+        ("switch", "Access switch", "Switch", "10.10.4.1", 230, 270),
+    ]:
+        if not db.get(Device, id) and not db.scalar(
+            select(Device).where(Device.ip == ip)
+        ):
+            db.add(
+                Device(
+                    id=id,
+                    name=name,
+                    kind=kind,
+                    ip=ip,
+                    criticality=1,
+                    vulnerability=0,
+                    x=x,
+                    y=y,
+                    segment="Virtual lab model",
+                )
+            )
+    db.flush()
+    for source, target in [
+        ("external", "router"),
+        ("firewall", "switch"),
+        ("switch", "user"),
+    ]:
+        if (
+            db.get(Device, source)
+            and db.get(Device, target)
+            and not db.scalar(
+                select(Connection).where(
+                    Connection.source == source, Connection.target == target
+                )
+            )
+        ):
+            edge = Connection(source=source, target=target)
+            db.add(edge)
+            db.flush()
+            db.add(AccessRule(connection_id=edge.id, allowed=True))
+    db.commit()
+
+
 def seed_topology(db):
     if db.scalar(select(Device)):
         return
@@ -95,13 +146,20 @@ def seed_events(db):
 
 
 if __name__ == "__main__":
+    import sys
+
     with SessionLocal() as db:
         seed_topology(db)
+        if "--extend-network" in sys.argv:
+            extend_cn_topology(db)
         if not db.scalar(select(Event)):
             seed_events(db)
     Path("samples").mkdir(exist_ok=True)
-    Path("samples/events.json").write_text(
-        json.dumps([e.model_dump(mode="json") for e in sample_events(12)], indent=2),
-        encoding="utf-8",
-    )
+    if not Path("samples/events.json").exists() or "--write-samples" in sys.argv:
+        Path("samples/events.json").write_text(
+            json.dumps(
+                [e.model_dump(mode="json") for e in sample_events(12)], indent=2
+            ),
+            encoding="utf-8",
+        )
     print("Seeded labeled simulation and virtual topology.")

@@ -1,0 +1,101 @@
+{
+  "duration_seconds": 765.31,
+  "chapters": [
+    {
+      "chapter": 1,
+      "title": "CyberTwin AI: project ka purpose",
+      "start_seconds": 0,
+      "duration_seconds": 48.03
+    },
+    {
+      "chapter": 2,
+      "title": "Overview: counts aur data ka origin",
+      "start_seconds": 48.03,
+      "duration_seconds": 48.52
+    },
+    {
+      "chapter": 3,
+      "title": "PCAP upload: packets se conversations",
+      "start_seconds": 96.55,
+      "duration_seconds": 49.72
+    },
+    {
+      "chapter": 4,
+      "title": "CN concepts: IP, ports, TCP, UDP aur IPv6",
+      "start_seconds": 146.27,
+      "duration_seconds": 46.06
+    },
+    {
+      "chapter": 5,
+      "title": "Threat Detection: port scan kyon flag hua?",
+      "start_seconds": 192.33,
+      "duration_seconds": 49.18
+    },
+    {
+      "chapter": 6,
+      "title": "Flow journey: evidence se policy tak",
+      "start_seconds": 241.51,
+      "duration_seconds": 46.35
+    },
+    {
+      "chapter": 7,
+      "title": "IP Investigation: source ka context",
+      "start_seconds": 287.86,
+      "duration_seconds": 48.7
+    },
+    {
+      "chapter": 8,
+      "title": "Settings: detection aur prevention alag hain",
+      "start_seconds": 336.56,
+      "duration_seconds": 49.15
+    },
+    {
+      "chapter": 9,
+      "title": "Linked alert se temporary prevention",
+      "start_seconds": 385.71,
+      "duration_seconds": 49.28
+    },
+    {
+      "chapter": 10,
+      "title": "Blocklist: state, expiry aur removal",
+      "start_seconds": 434.99,
+      "duration_seconds": 25.03
+    },
+    {
+      "chapter": 11,
+      "title": "Digital Twin: observed traffic ka replay",
+      "start_seconds": 460.02,
+      "duration_seconds": 48.05
+    },
+    {
+      "chapter": 12,
+      "title": "Digital Twin: before aur after defense",
+      "start_seconds": 508.07,
+      "duration_seconds": 53.35
+    },
+    {
+      "chapter": 13,
+      "title": "AI Insights: model, metrics aur prediction",
+      "start_seconds": 561.42,
+      "duration_seconds": 78.06
+    },
+    {
+      "chapter": 14,
+      "title": "Live Monitoring: start aur stop demo",
+      "start_seconds": 639.48,
+      "duration_seconds": 46.9
+    },
+    {
+      "chapter": 15,
+      "title": "Reports: evidence ka export",
+      "start_seconds": 686.38,
+      "duration_seconds": 25.24
+    },
+    {
+      "chapter": 16,
+      "title": "Andar kaise chalta hai aur professor ko closing",
+      "start_seconds": 711.62,
+      "duration_seconds": 53.69
+    }
+  ]
+}
