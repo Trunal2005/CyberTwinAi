@@ -11,6 +11,7 @@ COPY requirements*.txt ./
 RUN pip install --no-cache-dir -r requirements.txt -c requirements.lock.txt
 COPY backend/ backend/
 COPY migrations/ migrations/
+COPY samples/ samples/
 COPY alembic.ini ./
 COPY --from=frontend /frontend/dist frontend/dist
 RUN useradd --uid 10001 --create-home cybertwin && mkdir data && chown cybertwin:cybertwin data

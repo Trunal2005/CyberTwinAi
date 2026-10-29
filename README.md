@@ -181,7 +181,7 @@ SQLite default is `data/cybertwin.db`. Back up the DB and model together while t
 
 ## Docker (optional)
 
-The image runs an unprivileged user and includes built frontend and API. Compose binds only loopback and persists SQLite in a named volume. Create `.env` as above, then:
+The image runs an unprivileged user and includes the built frontend, API and bundled sample files. Presentation videos/poster stay in the clone and are omitted from the Docker image. Compose binds only loopback and persists SQLite in a named volume. Create `.env` as above, then:
 
 ```sh
 docker compose build

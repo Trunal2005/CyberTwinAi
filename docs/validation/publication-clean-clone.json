@@ -1,0 +1,9 @@
+{
+  "source_commit": "c88a58a4ee1d288d8a99780049e333b4fb959530",
+  "fresh_checkout": true,
+  "default_pytest_without_cache_parent": "PASS",
+  "migrations_admin_seed_model": "PASS",
+  "authenticated_api_pcap_mixed_timeline_pdf": "PASS",
+  "private_primary_data_used": false,
+  "python_dependencies": "Shared existing pinned environment; not reinstalled for this local check"
+}
